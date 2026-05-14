@@ -51,11 +51,11 @@ const Features: React.FC = () => {
             <Link 
               to={feature.link} 
               key={feature.name} 
-              className="bg-white rounded-lg border-2 border-gray-200 p-8 flex flex-col items-center text-center transition-colors duration-200 group hover:border-gray-300 active:bg-gray-50"
+              className="bg-white rounded-lg border-2 border-gray-200 p-8 flex flex-col items-start text-left h-full transition-colors duration-200 group hover:border-gray-300 active:bg-gray-50"
             >
               <div className="mb-4">{feature.icon}</div>
               <h3 className="text-lg font-bold text-gray-900 mb-2 group-hover:text-[#00C6A7]">{feature.name}</h3>
-              <p className="text-gray-600 text-sm">{feature.description}</p>
+              <p className="text-gray-600 text-sm min-h-[56px]"> {feature.description}</p>
             </Link>
           ))}
         </div>
