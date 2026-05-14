@@ -689,6 +689,25 @@ const ChatWindow = () => {
             position: 'relative',
           }}
         >
+          {message.replyTo && (
+            <Box 
+              sx={{ 
+                mb: 1.5, 
+                p: 1, 
+                bgcolor: isOwnMessage ? 'rgba(0, 198, 167, 0.08)' : 'rgba(0, 0, 0, 0.04)', 
+                borderRadius: '8px', 
+                borderLeft: `4px solid ${CHAT_THEME.primary}`,
+                display: 'block'
+              }}
+            >
+              <Typography variant="caption" sx={{ color: CHAT_THEME.primary, fontWeight: 700, display: 'block', mb: 0.25, fontSize: '0.75rem' }}>
+                {message.replyTo.sender?.name || 'User'}
+              </Typography>
+              <Typography variant="body2" noWrap sx={{ color: CHAT_THEME.textSecondary, fontSize: '0.8125rem', opacity: 0.8 }}>
+                {message.replyTo.message}
+              </Typography>
+            </Box>
+          )}
           {editingMessage?._id === message._id ? (
             <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
               <TextField
@@ -839,7 +858,7 @@ const ChatWindow = () => {
             )}
           </Box>
 
-          {isOwnMessage && user && (
+          {user && (
             <IconButton
               size="small"
               onClick={(e) => handleMessageActions(message, e)}
@@ -1471,23 +1490,26 @@ const ChatWindow = () => {
           }
         }}
       >
+        {selectedMessage && (
+          <MenuItem
+            onClick={() => {
+              setReplyTo(selectedMessage);
+              setAnchorEl(null);
+            }}
+            sx={{
+              borderRadius: '6px',
+              mx: 0.5,
+              my: 0.25,
+              '&:hover': { backgroundColor: CHAT_THEME.cardBg }
+            }}
+          >
+            <ReplyIcon fontSize="small" sx={{ mr: 1.5, color: CHAT_THEME.textSecondary }} />
+            <Typography variant="body2" sx={{ fontWeight: 500 }}>Reply</Typography>
+          </MenuItem>
+        )}
+        
         {selectedMessage && user && (selectedMessage.sender?._id === user._id || selectedMessage.sender?.id === user.id) && (
           <>
-            <MenuItem
-              onClick={() => {
-                setReplyTo(selectedMessage);
-                setAnchorEl(null);
-              }}
-              sx={{
-                borderRadius: '6px',
-                mx: 0.5,
-                my: 0.25,
-                '&:hover': { backgroundColor: CHAT_THEME.cardBg }
-              }}
-            >
-              <ReplyIcon fontSize="small" sx={{ mr: 1.5, color: CHAT_THEME.textSecondary }} />
-              <Typography variant="body2" sx={{ fontWeight: 500 }}>Reply</Typography>
-            </MenuItem>
             <MenuItem 
               onClick={() => {
                 startEditing(selectedMessage);
