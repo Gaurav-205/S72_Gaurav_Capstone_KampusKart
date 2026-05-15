@@ -135,6 +135,11 @@ const Profile = () => {
   const [error, setError] = useState<string | null>(null);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
   const [pageLoading, setPageLoading] = useState(true);
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [deletePassword, setDeletePassword] = useState('');
+  const [deleteLoading, setDeleteLoading] = useState(false);
+  const [deleteError, setDeleteError] = useState<string | null>(null);
+  const { logout } = useAuth();
 
   // Seed from AuthContext immediately, then fetch fresh data
   useEffect(() => {
@@ -270,6 +275,38 @@ const Profile = () => {
       setError('An error occurred while saving. Please try again.');
     } finally {
       setSaveLoading(false);
+    }
+  };
+  
+  const handleDeleteAccount = async () => {
+    if (!user?.googleId && !deletePassword) {
+      setDeleteError('Please enter your password to confirm.');
+      return;
+    }
+    
+    setDeleteLoading(true);
+    setDeleteError(null);
+    
+    try {
+      const res = await fetch(`${API_BASE}/api/profile`, {
+        method: 'DELETE',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ password: deletePassword })
+      });
+      
+      const data = await res.json();
+      if (res.ok) {
+        logout();
+      } else {
+        setDeleteError(data.message || 'Failed to delete account.');
+      }
+    } catch {
+      setDeleteError('An error occurred. Please try again.');
+    } finally {
+      setDeleteLoading(false);
     }
   };
 
@@ -486,8 +523,70 @@ const Profile = () => {
             )}
           </div>
 
+          {/* Delete Account Button */}
+          {!isEditing && (
+            <div className="mt-8 flex justify-center sm:justify-start">
+              <button
+                onClick={() => setShowDeleteModal(true)}
+                className="text-sm font-semibold text-red-600 hover:text-red-700 transition-colors duration-200"
+              >
+                Delete My Account
+              </button>
+            </div>
+          )}
+
         </div>
       </main>
+
+      {/* Delete Confirmation Modal */}
+      {showDeleteModal && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/50">
+          <div className="bg-white w-full max-w-md rounded-lg p-6 shadow-xl">
+            <h3 className="text-lg font-bold text-gray-900 mb-2">Delete Account</h3>
+            <p className="text-sm text-gray-500 mb-6">
+              Are you sure you want to delete your account? This action cannot be undone.
+            </p>
+
+            {deleteError && (
+              <div className="mb-4 text-red-600 text-xs font-medium">
+                {deleteError}
+              </div>
+            )}
+
+            {!user?.googleId && (
+              <div className="mb-6">
+                <label htmlFor="delete-password" className="block text-xs font-semibold text-gray-700 mb-2">
+                  Enter password to confirm
+                </label>
+                <input
+                  id="delete-password"
+                  type="password"
+                  value={deletePassword}
+                  onChange={(e) => setDeletePassword(e.target.value)}
+                  placeholder="Password"
+                  className="w-full px-3 py-2 border-2 border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#00C6A7]"
+                />
+              </div>
+            )}
+
+            <div className="flex gap-3 justify-end">
+              <button
+                onClick={() => { setShowDeleteModal(false); setDeletePassword(''); setDeleteError(null); }}
+                className="px-4 py-2 text-sm font-semibold text-gray-600 hover:text-gray-800"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleDeleteAccount}
+                disabled={deleteLoading}
+                className="px-4 py-2 bg-red-600 text-white text-sm font-bold rounded-lg hover:bg-red-700 disabled:opacity-50"
+              >
+                {deleteLoading ? 'Deleting...' : 'Delete Account'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       <Footer
         logo={<img src="/Logo.webp" alt="KampusKart Logo" className="h-7 w-7" />}

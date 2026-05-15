@@ -72,7 +72,38 @@ const updateProfile = async ({ userId, data, file }) => {
   return userObject;
 };
 
+const deleteAccount = async (userId, password) => {
+  const user = await userRepository.findById(userId);
+  if (!user) {
+    throw new ServiceError('User not found', 404);
+  }
+
+  // Verify password if it's not a Google user
+  if (!user.googleId) {
+    if (!password) {
+      throw new ServiceError('Password is required to delete account', 400);
+    }
+    const isMatch = await user.comparePassword(password);
+    if (!isMatch) {
+      throw new ServiceError('Incorrect password', 401);
+    }
+  }
+
+  // Delete profile picture from Cloudinary/storage if exists
+  if (user.profilePicture && user.profilePicture.public_id) {
+    try {
+      await mediaService.deleteByPublicId(user.profilePicture.public_id);
+    } catch (error) {
+      // Continue even if delete fails
+    }
+  }
+
+  await userRepository.deleteById(userId);
+  return { message: 'Account deleted successfully' };
+};
+
 module.exports = {
   getProfile,
-  updateProfile
+  updateProfile,
+  deleteAccount
 };

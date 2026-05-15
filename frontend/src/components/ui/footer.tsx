@@ -89,24 +89,13 @@ export function Footer({
                 </ul>
               </nav>
             </div>
-
-            <div className="flex flex-col gap-4 col-span-2 sm:col-span-1">
-              <h4 className="font-bold text-black text-sm uppercase tracking-wider">Status</h4>
-              <div className="flex items-center gap-2">
-                <span className="w-2 h-2 rounded-full bg-green-500 animate-pulse"></span>
-                <span className="text-sm font-medium text-gray-600">All Systems Operational</span>
-              </div>
-            </div>
           </div>
         </div>
 
         {/* Bottom Bar */}
-        <div className="mt-12 pt-8 border-t border-gray-100 flex flex-col md:flex-row items-center justify-between gap-4">
-          <div className="text-sm text-gray-500 font-medium">
+        <div className="mt-12 pt-8 border-t border-gray-100">
+          <div className="text-sm text-gray-500 font-medium text-center md:text-left">
             {copyright.text} • {copyright.license || "All rights reserved."}
-          </div>
-          <div className="flex items-center gap-1 text-sm text-gray-400">
-            Made with <span className="text-red-500">♥</span> for students
           </div>
         </div>
       </div>
