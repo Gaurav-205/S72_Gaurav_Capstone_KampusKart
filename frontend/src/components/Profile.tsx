@@ -525,10 +525,10 @@ const Profile = () => {
 
           {/* Delete Account Button */}
           {!isEditing && (
-            <div className="mt-8 flex justify-center sm:justify-start">
+            <div className="mt-12 flex justify-center sm:justify-start pt-8 border-t-2 border-gray-100">
               <button
                 onClick={() => setShowDeleteModal(true)}
-                className="text-sm font-semibold text-red-600 hover:text-red-700 transition-colors duration-200"
+                className="px-6 py-3 bg-red-600 text-white font-bold rounded-xl hover:bg-red-700 transition-all shadow-lg shadow-red-100"
               >
                 Delete My Account
               </button>
