@@ -23,7 +23,18 @@ const updateProfile = async (req, res) => {
   }
 };
 
+const deleteAccount = async (req, res) => {
+  try {
+    const { password } = req.body;
+    const result = await profileService.deleteAccount(req.user._id, password);
+    res.json(result);
+  } catch (error) {
+    handleServiceError(res, error, 'Failed to delete account');
+  }
+};
+
 module.exports = {
   getProfile,
-  updateProfile
+  updateProfile,
+  deleteAccount
 };

@@ -16,6 +16,7 @@ interface User {
   dateOfBirth?: string;
   program?: string;
   isAdmin?: boolean;
+  googleId?: string;
 }
 
 export interface AuthContextType {

@@ -8,5 +8,6 @@ const upload = createMemoryUpload();
 
 router.get('/', authMiddleware, profileController.getProfile);
 router.put('/', authMiddleware, upload.single('profilePicture'), profileController.updateProfile);
+router.delete('/', authMiddleware, profileController.deleteAccount);
 
 module.exports = router;
