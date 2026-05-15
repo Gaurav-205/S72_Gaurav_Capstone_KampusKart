@@ -128,6 +128,16 @@ cd S72_Gaurav_Capstone_KampusKart
 
 cd frontend && npm install
 cd ../backend && npm install
+
+
+### Maps Feature Dependencies
+
+This project uses interactive maps using **Leaflet** and **React Leaflet**.
+
+To enable map functionality, install the required dependencies:
+
+```bash
+npm install leaflet react-leaflet@4
 ```
 
 ### 2. Configure environment variables
