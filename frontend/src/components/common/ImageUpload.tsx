@@ -1,4 +1,4 @@
-import React, { useRef } from 'react';
+import React, { useRef, useState } from 'react';
 import { FiX } from 'react-icons/fi';
 import { validateFileSize, validateFileType } from '../../utils/formValidation';
 
@@ -38,7 +38,41 @@ export const ImageUpload: React.FC<ImageUploadProps> = ({
 }) => {
   const fileInputRef = useRef<HTMLInputElement>(null);
 
+  // Detects drag activity
+  const [isDragging, setIsDragging] = useState(false);
+  const [selectedPreview, setSelectedPreview] = useState<string | null>(null);
+
+  const handleDragOver = (e: React.DragEvent<HTMLDivElement>) => {
+  e.preventDefault();
+  setIsDragging(true);
+};
+
+const handleDragLeave = () => {
+  setIsDragging(false);
+};
+
+const handleDrop = (e: React.DragEvent<HTMLDivElement>) => {
+  e.preventDefault();
+  setIsDragging(false);
+
+  const droppedFiles = Array.from(e.dataTransfer.files);
+
+  if (droppedFiles.length === 0) return;
+
+  const imageFiles = droppedFiles.filter(file =>
+    file.type.startsWith('image/')
+  );
+
+  const newImages: ImageFile[] = imageFiles.map(file => ({
+    file,
+    previewUrl: URL.createObjectURL(file),
+  }));
+
+  onImagesChange([...images, ...newImages]);
+};
+
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    console.log("Files selected:", e.target.files);
     if (!e.target.files || disabled) return;
 
     const filesArray = Array.from(e.target.files);
@@ -94,9 +128,24 @@ export const ImageUpload: React.FC<ImageUploadProps> = ({
       <label className="block text-sm font-medium text-gray-700 mb-1">
         {single ? 'Image' : 'Images'}
       </label>
-      <div className="mt-1 flex justify-center px-4 pt-4 pb-5 sm:px-6 sm:pt-5 sm:pb-6 border-2 border-gray-200 rounded-md">
+      {/* detects dragged files,
+      prevents browser from opening image directly,
+      enables dropping files,
+      visually highlights drop zone while dragging. */}
+      <div
+  className={`mt-1 flex justify-center px-4 pt-4 pb-5 sm:px-6 sm:pt-5 sm:pb-6 border-2 rounded-md transition-colors ${
+    isDragging
+      ? 'border-blue-400 bg-blue-50'
+      : 'border-gray-200'
+          }`}
+      onDragOver={handleDragOver}
+      onDragLeave={handleDragLeave}
+      onDrop={handleDrop}
+    >
+
         <div className="space-y-1 text-center">
           <div className="flex text-sm text-gray-600">
+          
             <label
               htmlFor={id}
               className={`relative cursor-pointer bg-white rounded-md font-medium text-[#3FA9F6] hover:text-blue-500 focus-within:outline-none ${
@@ -110,12 +159,17 @@ export const ImageUpload: React.FC<ImageUploadProps> = ({
                 type="file"
                 accept="image/*"
                 multiple={!single}
-                className="sr-only"
+                // Using "hidden" instead of "sr-only" to properly hide the file input
+                // while still allowing the upload button/label interaction to trigger
+                // the native file picker reliably.
+                className = "hidden"
                 onChange={handleFileChange}
                 disabled={disabled || isMaxReached}
               />
             </label>
-            <p className="pl-1">or drag and drop</p>
+            <p className="pl-1 text-[#3FA9F6] font-medium">
+              or drag and drop
+            </p>
           </div>
           <p className="text-xs text-gray-500">{helpText || defaultHelpText}</p>
         </div>
@@ -123,26 +177,51 @@ export const ImageUpload: React.FC<ImageUploadProps> = ({
 
       {/* Image Previews */}
       {images.length > 0 && (
-        <div className={`mt-4 grid gap-2 ${single ? 'grid-cols-1' : 'grid-cols-2 xs:grid-cols-3 sm:grid-cols-4'}`}>
-          {images.map((image, index) => (
-            <div key={index} className="relative group">
-              <img
-                src={image.previewUrl || image.url}
-                alt={`Preview ${index + 1}`}
-                className={`${single ? 'h-48 w-full' : 'h-24 w-full sm:h-28'} object-cover rounded-lg border-2 border-gray-200`}
-              />
-              <button
-                type="button"
-                onClick={() => handleRemoveImage(index)}
-                className="absolute top-1 right-1 bg-red-500 hover:bg-red-600 text-white rounded-lg p-1 transition-colors"
-                aria-label="Remove image"
-              >
-                <FiX className="w-3 h-3 sm:w-4 sm:h-4" />
-              </button>
-            </div>
-          ))}
-        </div>
-      )}
+  <div
+    className={`mt-4 grid gap-2 ${
+      single
+        ? 'grid-cols-1'
+        : 'grid-cols-2 xs:grid-cols-3 sm:grid-cols-4'
+    }`}
+  >
+    {images.map((image, index) => (
+      <div key={index} className="relative group">
+        <img
+          src={image.previewUrl || image.url}
+          alt={`Preview ${index + 1}`}
+          onClick={() =>
+            setSelectedPreview(image.previewUrl || image.url || null)
+          }
+          className={`${
+            single ? 'h-48 w-full' : 'h-24 w-full sm:h-28'
+          } object-cover rounded-lg border-2 border-gray-200 cursor-pointer hover:opacity-90 transition-opacity`}
+        />
+
+        <button
+          type="button"
+          onClick={() => handleRemoveImage(index)}
+          className="absolute top-1 right-1 bg-red-500 hover:bg-red-600 text-white rounded-lg p-1 transition-colors"
+          aria-label="Remove image"
+        >
+          <FiX className="w-3 h-3 sm:w-4 sm:h-4" />
+        </button>
+      </div>
+    ))}
+  </div>
+)}
+
+  {selectedPreview && (
+    <div
+      className="fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center z-50"
+      onClick={() => setSelectedPreview(null)}
+    >
+    <img
+      src={selectedPreview}
+      alt="Preview"
+      className="max-h-[90vh] max-w-[90vw] rounded-lg shadow-lg"
+    />
+    </div>
+  )}
     </div>
   );
 };
