@@ -1,5 +1,5 @@
 import React, { useRef, useState } from 'react';
-import { FiX } from 'react-icons/fi';
+import { FiX, FiUploadCloud } from 'react-icons/fi';
 import { validateFileSize, validateFileType } from '../../utils/formValidation';
 
 export interface ImageFile {
@@ -144,14 +144,19 @@ const handleDrop = (e: React.DragEvent<HTMLDivElement>) => {
     >
 
         <div className="space-y-1 text-center">
-          <div className="flex text-sm text-gray-600">
           
+          <div className="flex items-center justify-center text-sm text-gray-600">
+          <FiUploadCloud
+          onClick={() => fileInputRef.current?.click()}
+          className="h-4 w-4 text-[#3FA9F6] cursor-pointer mr-1 mt-0.5"
+          />
             <label
               htmlFor={id}
               className={`relative cursor-pointer bg-white rounded-md font-medium text-[#3FA9F6] hover:text-blue-500 focus-within:outline-none ${
                 disabled || isMaxReached ? 'opacity-50 cursor-not-allowed' : ''
               }`}
             >
+              
               <span>Upload {single ? 'file' : 'files'}</span>
               <input
                 ref={fileInputRef}
@@ -167,7 +172,7 @@ const handleDrop = (e: React.DragEvent<HTMLDivElement>) => {
                 disabled={disabled || isMaxReached}
               />
             </label>
-            <p className="pl-1 text-[#3FA9F6] font-medium">
+            <p className="pl-1 text-gray-500">
               or drag and drop
             </p>
           </div>
