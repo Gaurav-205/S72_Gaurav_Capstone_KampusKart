@@ -47,8 +47,8 @@ export const EventDetail: React.FC<EventDetailProps> = ({ event, isAdmin, onEdit
   return (
     <div className="space-y-8 pb-4">
       {/* Header Section with Image and Key Info */}
-      <div className="flex flex-col md:flex-row gap-8">
-        <div className="w-full md:w-1/2 flex-shrink-0">
+      <div className="flex flex-col lg:flex-row gap-8 lg:gap-12">
+        <div className="w-full lg:w-1/2 flex-shrink-0 min-w-0">
           {event.image?.url ? (
             <div 
               className="relative aspect-video rounded-xl overflow-hidden border-2 border-gray-100 cursor-zoom-in group"
@@ -68,26 +68,26 @@ export const EventDetail: React.FC<EventDetailProps> = ({ event, isAdmin, onEdit
           )}
         </div>
 
-        <div className="flex-grow space-y-6">
+        <div className="flex-grow space-y-6 min-w-0">
           <div>
             <div className="flex flex-wrap items-center gap-3 mb-4">
               {renderStatus(event.status)}
             </div>
-            <h2 className="text-3xl font-extrabold text-gray-900 leading-tight mb-2">{event.title}</h2>
+            <h2 className="text-2xl sm:text-3xl font-extrabold text-gray-900 leading-tight mb-3 break-words">{event.title}</h2>
             <div className="flex items-center text-gray-500 text-sm font-medium">
-              <FiCalendar className="mr-2" />
+              <FiCalendar className="mr-2 flex-shrink-0" />
               <span>{new Date(event.date).toLocaleDateString('en-US', { dateStyle: 'long' })}</span>
             </div>
           </div>
 
           <div className="space-y-4">
-            <div className="flex items-center text-gray-700">
-              <FiMapPin className="mr-3 text-[#00C6A7] w-5 h-5 flex-shrink-0" />
-              <span className="font-semibold">{event.location}</span>
+            <div className="flex items-start text-gray-700 gap-3">
+              <FiMapPin className="text-[#00C6A7] w-5 h-5 flex-shrink-0 mt-0.5" />
+              <span className="font-semibold break-words">{event.location}</span>
             </div>
             {event.operatingHours && (
-              <div className="flex items-center text-gray-700">
-                <FiClock className="mr-3 text-[#00C6A7] w-5 h-5 flex-shrink-0" />
+              <div className="flex items-center text-gray-700 gap-3">
+                <FiClock className="text-[#00C6A7] w-5 h-5 flex-shrink-0" />
                 <span>{event.operatingHours}</span>
               </div>
             )}
@@ -98,7 +98,7 @@ export const EventDetail: React.FC<EventDetailProps> = ({ event, isAdmin, onEdit
               href={event.registerUrl}
               target="_blank"
               rel="noopener noreferrer"
-              className={`w-full ${UI_PATTERNS.buttonPrimary} text-center py-4 rounded-xl text-lg`}
+              className={`block ${UI_PATTERNS.buttonPrimary} text-center py-2 px-4 rounded-lg text-sm sm:text-base font-semibold mt-4 max-w-xs`}
             >
               Register for this Event
             </a>
