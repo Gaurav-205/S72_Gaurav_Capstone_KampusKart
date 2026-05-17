@@ -7,6 +7,7 @@ import KampusKartNavbar from './components/KampusKartNavbar';
 // Lazy load all route components
 const Login = React.lazy(() => import('./pages/Login'));
 const Signup = React.lazy(() => import('./pages/Signup'));
+const VerifyEmail = React.lazy(() => import('./pages/VerifyEmail'));
 const Landing = React.lazy(() => import('./pages/Landing'));
 const ForgotPassword = React.lazy(() => import('./pages/ForgotPassword'));
 const Home = React.lazy(() => import('./pages/Home'));
@@ -63,11 +64,11 @@ const GoogleCallback: React.FC = () => {
 // Layout wrapper that shows navbar on all pages except login/signup
 const AppLayout: React.FC = () => {
   const location = useLocation();
-  const hideNavbarRoutes = ['/login', '/signup', '/forgot-password'];
+  const hideNavbarRoutes = ['/login', '/signup', '/forgot-password', '/verify-email'];
   const showNavbar = !hideNavbarRoutes.some(route => location.pathname === route || location.pathname.startsWith(`${route}/`));
 
   React.useEffect(() => {
-    const lockScrollRoutes = ['/login', '/signup'];
+    const lockScrollRoutes = ['/login', '/signup', '/verify-email'];
     const shouldLockScroll = lockScrollRoutes.some(
       route => location.pathname === route || location.pathname.startsWith(`${route}/`)
     );
@@ -90,6 +91,7 @@ const AppLayout: React.FC = () => {
             <Route path="/" element={<RootRedirect />} />
             <Route path="/login" element={<Login />} />
             <Route path="/signup" element={<Signup />} />
+            <Route path="/verify-email" element={<VerifyEmail />} />
             <Route path="/forgot-password" element={<ForgotPassword />} />
             <Route path="/auth/google/callback" element={<GoogleCallback />} />
             <Route

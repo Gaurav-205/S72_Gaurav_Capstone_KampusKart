@@ -45,6 +45,7 @@ passport.use(
           if (user) {
             // Link Google account to existing user
             user.googleId = profile.id;
+            user.isEmailVerified = true;
             await user.save();
           } else {
             // Create new user
@@ -52,6 +53,7 @@ passport.use(
               googleId: profile.id,
               email: profile.emails[0].value,
               name: profile.displayName,
+              isEmailVerified: true,
             });
           }
         }

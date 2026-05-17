@@ -49,6 +49,7 @@ const Signup: React.FC = () => {
   const [showPassword, setShowPassword] = useState(false);
   const [remember, setRemember] = useState(false);
   const [error, setError] = useState('');
+  const [successMessage, setSuccessMessage] = useState('');
   const [loading, setLoading] = useState(false);
   const [passwordErrors, setPasswordErrors] = useState<string[]>([]);
   const [showPasswordTips, setShowPasswordTips] = useState(false);
@@ -92,9 +93,14 @@ const Signup: React.FC = () => {
     if (!name.trim()) { setError('Name is required'); return; }
     try {
       setError('');
+      setSuccessMessage('');
       setLoading(true);
-      await signup(email, password, name, remember);
-      navigate('/home');
+      const res = await signup(email, password, name, remember);
+      if (res && res.requireVerification) {
+        setSuccessMessage(res.message);
+      } else {
+        navigate('/home');
+      }
     } catch (err: any) {
       if (axios.isAxiosError(err)) {
         setError(err.response?.data?.message || 'Failed to create account. Please try again.');
@@ -128,6 +134,13 @@ const Signup: React.FC = () => {
           {error && (
             <div className="mb-4 rounded-lg bg-red-50 border-2 border-red-200 p-3">
               <p className="text-sm text-red-700">{error}</p>
+            </div>
+          )}
+
+          {/* Success */}
+          {successMessage && (
+            <div className="mb-4 rounded-lg bg-green-50 border-2 border-green-200 p-3">
+              <p className="text-sm text-green-700">{successMessage}</p>
             </div>
           )}
 

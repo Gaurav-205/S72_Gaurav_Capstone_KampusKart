@@ -38,23 +38,47 @@ const signup = async ({ email, password, name }) => {
     throw new ServiceError('User already exists', 400);
   }
 
+  const verificationToken = crypto.randomBytes(32).toString('hex');
+  const hashedToken = crypto.createHash('sha256').update(verificationToken).digest('hex');
+
   const user = await userRepository.create({
     email: normalizedEmail,
     password,
-    name: name.trim()
+    name: name.trim(),
+    isEmailVerified: false,
+    emailVerificationToken: hashedToken,
+    emailVerificationExpires: Date.now() + 24 * 60 * 60 * 1000,
   });
 
-  const token = createToken(user._id);
-  const isAdmin = isAdminEmail(user.email);
+  const frontendUrl = (
+    process.env.FRONTEND_URL ||
+    (process.env.NODE_ENV === 'production'
+      ? 'https://kampuskart.netlify.app'
+      : 'http://localhost:3000')
+  ).replace(/\/$/, '');
+
+  const verifyUrl = `${frontendUrl}/verify-email?token=${verificationToken}`;
+
+  console.log('\n--- VERIFICATION LINK (For testing without email setup) ---');
+  console.log(verifyUrl);
+  console.log('-----------------------------------------------------------\n');
+
+  if (transporter) {
+    try {
+      await transporter.sendMail({
+        to: user.email,
+        from: process.env.EMAIL_USER,
+        subject: 'Verify your KampusKart email address',
+        text: `Please verify your email address by clicking the following link:\n\n${verifyUrl}\n\nThis link is valid for 24 hours.`
+      });
+    } catch (error) {
+      console.error('Error sending verification email:', error);
+    }
+  }
 
   return {
-    token,
-    user: {
-      id: user._id,
-      email: user.email,
-      name: user.name,
-      isAdmin
-    }
+    message: 'Registration successful. Please check your email to verify your account.',
+    requireVerification: true
   };
 };
 
@@ -68,6 +92,10 @@ const login = async ({ email, password }) => {
   const isMatch = await user.comparePassword(password);
   if (!isMatch) {
     throw new ServiceError('Invalid credentials', 400);
+  }
+
+  if (!user.isEmailVerified) {
+    throw new ServiceError('Please verify your email to log in', 403);
   }
 
   const token = createToken(user._id);
@@ -188,11 +216,82 @@ const buildGoogleRedirectUrl = ({ user }) => {
   return `${frontendUrl}/auth/google/callback?token=${token}`;
 };
 
+const verifyEmail = async ({ token }) => {
+  if (!token) {
+    throw new ServiceError('Invalid or missing verification token', 400);
+  }
+
+  const hashedToken = crypto.createHash('sha256').update(token).digest('hex');
+  const user = await userRepository.findByVerificationToken(hashedToken);
+
+  if (!user) {
+    throw new ServiceError('Invalid or expired verification token', 400);
+  }
+
+  user.isEmailVerified = true;
+  user.emailVerificationToken = undefined;
+  user.emailVerificationExpires = undefined;
+  await user.save();
+
+  return { message: 'Email verified successfully' };
+};
+
+const resendVerification = async ({ email }) => {
+  const normalizedEmail = email.toLowerCase();
+  const user = await userRepository.findByEmail(normalizedEmail);
+  
+  if (!user) {
+    throw new ServiceError('User not found', 404);
+  }
+
+  if (user.isEmailVerified) {
+    throw new ServiceError('Email is already verified', 400);
+  }
+
+  const verificationToken = crypto.randomBytes(32).toString('hex');
+  const hashedToken = crypto.createHash('sha256').update(verificationToken).digest('hex');
+
+  user.emailVerificationToken = hashedToken;
+  user.emailVerificationExpires = Date.now() + 24 * 60 * 60 * 1000;
+  await user.save();
+
+  const frontendUrl = (
+    process.env.FRONTEND_URL ||
+    (process.env.NODE_ENV === 'production'
+      ? 'https://kampuskart.netlify.app'
+      : 'http://localhost:3000')
+  ).replace(/\/$/, '');
+
+  const verifyUrl = `${frontendUrl}/verify-email?token=${verificationToken}`;
+
+  console.log('\n--- VERIFICATION LINK (For testing without email setup) ---');
+  console.log(verifyUrl);
+  console.log('-----------------------------------------------------------\n');
+
+  if (transporter) {
+    try {
+      await transporter.sendMail({
+        to: user.email,
+        from: process.env.EMAIL_USER,
+        subject: 'Verify your KampusKart email address',
+        text: `Please verify your email address by clicking the following link:\n\n${verifyUrl}\n\nThis link is valid for 24 hours.`
+      });
+    } catch (error) {
+      console.error('Error sending verification email:', error);
+      throw new ServiceError('Error sending email. Please try again later.', 500);
+    }
+  }
+
+  return { message: 'Verification email resent successfully' };
+};
+
 module.exports = {
   signup,
   login,
   requestPasswordReset,
   resetPassword,
   refreshToken,
-  buildGoogleRedirectUrl
+  buildGoogleRedirectUrl,
+  verifyEmail,
+  resendVerification
 };
