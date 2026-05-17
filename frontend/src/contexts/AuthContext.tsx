@@ -22,7 +22,7 @@ export interface AuthContextType {
   user: User | null;
   token: string | null;
   login: (email: string, password: string, remember?: boolean) => Promise<void>;
-  signup: (email: string, password: string, name: string, remember?: boolean) => Promise<void>;
+  signup: (email: string, password: string, name: string, remember?: boolean) => Promise<any>;
   loginWithGoogle: () => void;
   handleGoogleCallback: (token: string) => Promise<void>;
   logout: () => void;
@@ -327,6 +327,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
             password,
             name: name.trim()
           });
+
+          if (response.data.requireVerification) {
+            return response.data;
+          }
 
           const { token, user } = response.data;
           setToken(token);
