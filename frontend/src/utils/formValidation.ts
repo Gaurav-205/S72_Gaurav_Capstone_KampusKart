@@ -85,11 +85,9 @@ export const validateFutureDate = (date: string, fieldName: string = 'Date'): Va
     return { isValid: true }; // Date validation will be handled by required check
   }
   
-  const selectedDate = new Date(date);
-  const today = new Date();
-  today.setHours(0, 0, 0, 0);
+  const todayStr = new Date().toLocaleDateString('en-CA');
   
-  if (selectedDate < today) {
+  if (date < todayStr) {
     return {
       isValid: false,
       error: `${fieldName} cannot be in the past`,
