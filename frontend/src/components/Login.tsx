@@ -2,6 +2,8 @@ import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { EyeIcon, EyeSlashIcon } from '@heroicons/react/24/outline';
+import axios from 'axios';
+import { API_BASE } from '../config';
 
 const imageUrl = '/login-side.jpg';
 
@@ -39,6 +41,9 @@ const Login: React.FC = () => {
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
   const [emailError, setEmailError] = useState('');
+  const [needsVerification, setNeedsVerification] = useState(false);
+  const [resendLoading, setResendLoading] = useState(false);
+  const [resendMessage, setResendMessage] = useState('');
   const navigate = useNavigate();
   const { login, loginWithGoogle } = useAuth();
 
@@ -61,13 +66,33 @@ const Login: React.FC = () => {
     if (!validateEmail(email)) { setEmailError('Please enter a valid email address'); return; }
     try {
       setError('');
+      setNeedsVerification(false);
+      setResendMessage('');
       setLoading(true);
       await login(email, password, remember);
       navigate('/home');
     } catch (err: any) {
-      setError(err?.response?.data?.message || err?.message || 'Failed to login');
+      const errorMessage = err?.response?.data?.message || err?.message || 'Failed to login';
+      setError(errorMessage);
+      if (errorMessage.toLowerCase().includes('verify your email')) {
+        setNeedsVerification(true);
+      }
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleResendVerification = async () => {
+    try {
+      setResendLoading(true);
+      setResendMessage('');
+      setError('');
+      const response = await axios.post(`${API_BASE}/api/auth/resend-verification`, { email });
+      setResendMessage(response.data.message || 'Verification email sent');
+    } catch (err: any) {
+      setError(err?.response?.data?.message || 'Failed to resend verification email');
+    } finally {
+      setResendLoading(false);
     }
   };
 
@@ -94,6 +119,23 @@ const Login: React.FC = () => {
             <div className="mb-4 rounded-lg bg-red-50 border-2 border-red-200 p-3">
               <p className="text-sm text-red-700">{error}</p>
             </div>
+          )}
+
+          {/* Resend Message */}
+          {resendMessage && (
+            <div className="mb-4 rounded-lg bg-green-50 border-2 border-green-200 p-3">
+              <p className="text-sm text-green-700">{resendMessage}</p>
+            </div>
+          )}
+
+          {needsVerification && !resendMessage && (
+            <button
+              onClick={handleResendVerification}
+              disabled={resendLoading}
+              className="mb-4 w-full py-2 px-4 rounded-lg text-sm font-semibold text-[#00C6A7] bg-[#00C6A7]/10 hover:bg-[#00C6A7]/20 transition-colors"
+            >
+              {resendLoading ? 'Sending...' : 'Resend Verification Email'}
+            </button>
           )}
 
           <form className="space-y-4 sm:space-y-5" onSubmit={handleSubmit}>

@@ -59,11 +59,31 @@ const googleCallback = async (req, res) => {
   }
 };
 
+const verifyEmail = async (req, res) => {
+  try {
+    const result = await authService.verifyEmail(req.query);
+    res.status(200).json(result);
+  } catch (error) {
+    handleServiceError(res, error, 'Error verifying email');
+  }
+};
+
+const resendVerification = async (req, res) => {
+  try {
+    const result = await authService.resendVerification(req.body);
+    res.status(200).json(result);
+  } catch (error) {
+    handleServiceError(res, error, 'Error resending verification email');
+  }
+};
+
 module.exports = {
   signup,
   login,
   requestPasswordReset,
   resetPassword,
   refreshToken,
-  googleCallback
+  googleCallback,
+  verifyEmail,
+  resendVerification
 };
