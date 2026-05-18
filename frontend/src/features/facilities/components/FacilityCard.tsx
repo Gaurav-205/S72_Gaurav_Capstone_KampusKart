@@ -33,6 +33,10 @@ export const FacilityCard: React.FC<FacilityCardProps> = ({
             src={facility.images[0].url}
             alt={facility.name}
             className="object-cover w-full h-full"
+            onError={(e) => {
+            e.currentTarget.src =
+              'https://via.placeholder.com/600x400?text=No+Image';
+          }}
           />
         ) : (
           <div className="w-full h-full flex items-center justify-center bg-gray-50">
