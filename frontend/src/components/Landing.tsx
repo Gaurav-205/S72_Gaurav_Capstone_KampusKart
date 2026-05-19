@@ -143,19 +143,6 @@ const Landing: React.FC = () => {
           logo={<img src="/Logo.webp" alt="KampusKart Logo" className="h-7 w-7" />}
           brandName="KampusKart"
           socialLinks={socialLinks}
-          mainLinks={[
-            { href: '/', label: 'Home' },
-            { href: '/login', label: 'Sign In' },
-            { href: '/signup', label: 'Sign Up' },
-          ]}
-          legalLinks={[
-            { href: '/privacy', label: 'Privacy' },
-            { href: '/terms', label: 'Terms' },
-          ]}
-          copyright={{
-            text: `© ${new Date().getFullYear()} KampusKart`,
-            license: 'All rights reserved.',
-          }}
         />
 
       </div>

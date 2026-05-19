@@ -239,10 +239,7 @@ const Events = () => {
         brandName="KampusKart"
         socialLinks={socialLinks}
         mainLinks={[
-          { href: '/events', label: 'Events' },
-          { href: '/facilities', label: 'Facilities' },
-          { href: '/clubs-recruitment', label: 'Clubs' },
-          { href: '/campus-map', label: 'Map' },
+          { href: '/', label: 'Home' },
         ]}
         legalLinks={[
           { href: '/privacy', label: 'Privacy' },
