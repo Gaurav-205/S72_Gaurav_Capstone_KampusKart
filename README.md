@@ -14,7 +14,7 @@
 
 ---
 
-**Note:** This repository is owned by the `kalviumcommunity` organization. If you maintain a personal profile README (for example, `Gaurav-205`), please pin a link to this project and add the short blurb in [docs/profile_readme_snippet.md](docs/profile_readme_snippet.md) so visitors can find the project quickly.
+**Note:** This repository is owned by the Gaurav. If you maintain a personal profile README (for example, `Gaurav-205`), please pin a link to this project and add the short blurb in [docs/profile_readme_snippet.md](docs/profile_readme_snippet.md) so visitors can find the project quickly.
 
 
 ## Overview
