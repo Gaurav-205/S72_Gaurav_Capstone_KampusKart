@@ -1,9 +1,11 @@
 [build]
+  base = "frontend"
   command = "npm run build:verify"
-  publish = "frontend/dist"
+  publish = "dist"
 
 [build.environment]
   NODE_VERSION = "20.19.0"
+  NPM_FLAGS = "--include=optional"
   VITE_API_URL = "https://s72-gaurav-capstone-kampuskart.onrender.com"
   VITE_SOCKET_URL = "https://s72-gaurav-capstone-kampuskart.onrender.com"
 
