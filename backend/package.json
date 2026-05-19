@@ -10,7 +10,7 @@
     "test": "jest",
     "test:integration": "jest --testPathPattern=integration.test.js$",
     "lint": "eslint .",
-    "test:local": "docker compose up -d && cross-env MONGODB_URI=mongodb://localhost:27017/kampuskart_test jest",
+    "test:local": "cross-env NODE_ENV=test jest",
     "test-keep-alive": "node scripts/test-keep-alive.js",
     "setup-uptime": "node scripts/setup-uptime-monitoring.js",
     "seed": "node scripts/seedData.js"
