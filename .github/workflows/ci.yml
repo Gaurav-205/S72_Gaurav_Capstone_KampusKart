@@ -19,19 +19,12 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version-file: '.nvmrc'
-
-      - name: Cache node modules
-        uses: actions/cache@v4
-        id: cache-npm
-        with:
-          path: frontend/node_modules
-          key: ${{ runner.os }}-frontend-${{ hashFiles('frontend/package-lock.json') }}
-          restore-keys: |
-            ${{ runner.os }}-frontend-
+          cache: 'npm'
+          cache-dependency-path: frontend/package-lock.json
 
       - name: Install dependencies
         working-directory: ./frontend
-        run: npm ci --include=dev --include=optional
+        run: npm ci --include=dev --include=optional --no-audit --no-fund
         env:
           NPM_CONFIG_PRODUCTION: "false"
 
@@ -74,20 +67,14 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version-file: '.nvmrc'
-
-      - name: Cache node modules
-        uses: actions/cache@v4
-        id: cache-npm
-        with:
-          path: backend/node_modules
-          key: ${{ runner.os }}-backend-${{ hashFiles('backend/package-lock.json') }}
-          restore-keys: |
-            ${{ runner.os }}-backend-
+          cache: 'npm'
+          cache-dependency-path: backend/package-lock.json
 
       - name: Install dependencies
-        if: steps.cache-npm.outputs.cache-hit != 'true'
         working-directory: ./backend
-        run: npm ci
+        run: npm ci --include=dev --include=optional --no-audit --no-fund
+        env:
+          NPM_CONFIG_PRODUCTION: "false"
 
       - name: Run ESLint
         working-directory: ./backend
@@ -123,10 +110,14 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version-file: '.nvmrc'
+          cache: 'npm'
+          cache-dependency-path: |
+            frontend/package-lock.json
+            backend/package-lock.json
 
       - name: Install frontend dependencies
         working-directory: ./frontend
-        run: npm ci
+        run: npm ci --include=dev --include=optional --no-audit --no-fund
 
       - name: Audit frontend dependencies
         working-directory: ./frontend
@@ -135,7 +126,7 @@ jobs:
 
       - name: Install backend dependencies
         working-directory: ./backend
-        run: npm ci
+        run: npm ci --include=dev --include=optional --no-audit --no-fund
 
       - name: Audit backend dependencies
         working-directory: ./backend

@@ -17,19 +17,14 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version-file: '.nvmrc'
-
-      - name: Cache node modules
-        uses: actions/cache@v4
-        id: cache-npm
-        with:
-          path: frontend/node_modules
-          key: ${{ runner.os }}-frontend-${{ hashFiles('frontend/package-lock.json') }}
-          restore-keys: |
-            ${{ runner.os }}-frontend-
+          cache: 'npm'
+          cache-dependency-path: frontend/package-lock.json
 
       - name: Install dependencies
         working-directory: ./frontend
-        run: npm ci --include=optional
+        run: npm ci --include=dev --include=optional --no-audit --no-fund
+        env:
+          NPM_CONFIG_PRODUCTION: "false"
 
       - name: Build production bundle
         working-directory: ./frontend
