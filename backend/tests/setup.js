@@ -7,26 +7,25 @@ process.env.CLOUDINARY_CLOUD_NAME = 'test-cloud';
 process.env.CLOUDINARY_API_KEY = 'test-api-key';
 process.env.CLOUDINARY_API_SECRET = 'test-api-secret';
 
+// Increase Jest timeout for environments that may be slow to download binaries
+if (typeof jest !== 'undefined' && jest.setTimeout) {
+  jest.setTimeout(30000);
+}
+
 let mongoServer;
-
-beforeAll(async () => {
-  mongoServer = await MongoMemoryServer.create();
-  process.env.MONGODB_URI = mongoServer.getUri('kampuskart-test');
-});
-
-afterAll(async () => {
-  if (mongoServer) {
-    await mongoServer.stop();
-  }
-});
-
-// Connect mongoose to in-memory server for integration tests
 const mongoose = require('mongoose');
+
+// If MONGODB_URI is provided (CI uses a service), prefer it. Otherwise, start an in-memory server.
 beforeAll(async () => {
+  if (!process.env.MONGODB_URI) {
+    mongoServer = await MongoMemoryServer.create();
+    process.env.MONGODB_URI = mongoServer.getUri('kampuskart-test');
+  }
+
   if (process.env.MONGODB_URI) {
     await mongoose.connect(process.env.MONGODB_URI, {
       useNewUrlParser: true,
-      useUnifiedTopology: true
+      useUnifiedTopology: true,
     });
   }
 });
@@ -36,6 +35,10 @@ afterAll(async () => {
     await mongoose.disconnect();
   } catch (e) {
     // ignore
+  }
+
+  if (mongoServer) {
+    await mongoServer.stop();
   }
 });
 
