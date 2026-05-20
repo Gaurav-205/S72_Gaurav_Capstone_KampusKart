@@ -761,10 +761,15 @@ const ChatWindow = () => {
                 <Box key={index} sx={{ mb: 1 }}>
                   {attachment.type === 'image' ? (
                     <img
-                      src={attachment.url}
-                      alt={attachment.name}
-                      style={{ maxWidth: '180px', borderRadius: '8px' }}
-                    />
+                    src={attachment.url}
+                    alt={attachment.name}
+                    style={{
+                      maxWidth: '180px',
+                      borderRadius: '8px',
+                      cursor: 'pointer'
+                    }}
+                    onClick={() => window.open(attachment.url, '_blank')}
+                  />
                   ) : (
                     <Button
                       variant="outlined"
