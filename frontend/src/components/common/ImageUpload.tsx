@@ -1,4 +1,4 @@
-import React, { useRef } from 'react';
+import React, { useRef, useEffect } from 'react';
 import { FiX } from 'react-icons/fi';
 import { validateFileSize, validateFileType } from '../../utils/formValidation';
 
@@ -21,6 +21,14 @@ interface ImageUploadProps {
   id?: string;
 }
 
+const isBlobPreviewUrl = (url?: string): boolean => Boolean(url?.startsWith('blob:'));
+
+const revokePreviewUrl = (image: ImageFile): void => {
+  if (image.previewUrl && isBlobPreviewUrl(image.previewUrl)) {
+    URL.revokeObjectURL(image.previewUrl);
+  }
+};
+
 /**
  * Reusable image upload component
  * Supports single or multiple image uploads with preview
@@ -37,28 +45,39 @@ export const ImageUpload: React.FC<ImageUploadProps> = ({
   id = 'image-upload',
 }) => {
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const imagesRef = useRef(images);
+  imagesRef.current = images;
 
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (!e.target.files || disabled) return;
+  const isMaxReached = single ? images.length >= 1 : images.length >= maxImages;
 
-    const filesArray = Array.from(e.target.files);
+  const notifyImagesChange = (nextImages: ImageFile[]): void => {
+    if (typeof onImagesChange === 'function') {
+      onImagesChange(nextImages);
+    }
+  };
+
+  const resetFileInput = (): void => {
+    if (fileInputRef.current) {
+      fileInputRef.current.value = '';
+    }
+  };
+
+  const processFiles = (files: File[]): void => {
+    if (disabled) return;
+
     const remainingSlots = single ? (images.length === 0 ? 1 : 0) : maxImages - images.length;
-    const filesToAdd = filesArray.slice(0, remainingSlots);
+    const filesToAdd = files.slice(0, remainingSlots);
 
     const newImages: ImageFile[] = [];
 
     for (const file of filesToAdd) {
-      // Validate file type
       const typeValidation = validateFileType(file);
       if (!typeValidation.isValid) {
-        // Could show error toast here
         continue;
       }
 
-      // Validate file size
       const sizeValidation = validateFileSize(file, maxSizeMB);
       if (!sizeValidation.isValid) {
-        // Could show error toast here
         continue;
       }
 
@@ -68,19 +87,57 @@ export const ImageUpload: React.FC<ImageUploadProps> = ({
       });
     }
 
+    if (newImages.length === 0) {
+      resetFileInput();
+      return;
+    }
+
     if (single) {
-      onImagesChange(newImages.length > 0 ? [newImages[0]] : []);
+      images.forEach(revokePreviewUrl);
+      notifyImagesChange([newImages[0]]);
     } else {
-      onImagesChange([...images, ...newImages]);
+      notifyImagesChange([...images, ...newImages]);
+    }
+
+    resetFileInput();
+  };
+
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>): void => {
+    if (!e.target.files) return;
+    processFiles(Array.from(e.target.files));
+  };
+
+  const handleDragOver = (e: React.DragEvent<HTMLDivElement>): void => {
+    e.preventDefault();
+    e.stopPropagation();
+  };
+
+  const handleDrop = (e: React.DragEvent<HTMLDivElement>): void => {
+    e.preventDefault();
+    e.stopPropagation();
+    if (disabled || isMaxReached) return;
+
+    const imageFiles = Array.from(e.dataTransfer.files).filter(
+      (file): file is File => file.type.startsWith('image/')
+    );
+    if (imageFiles.length > 0) {
+      processFiles(imageFiles);
     }
   };
 
-  const handleRemoveImage = (index: number) => {
-    const newImages = images.filter((_, i) => i !== index);
-    onImagesChange(newImages);
+  const handleRemoveImage = (index: number): void => {
+    const removed = images[index];
+    if (removed) {
+      revokePreviewUrl(removed);
+    }
+    notifyImagesChange(images.filter((_, i) => i !== index));
   };
 
-  const isMaxReached = single ? images.length >= 1 : images.length >= maxImages;
+  useEffect(() => {
+    return () => {
+      imagesRef.current.forEach(revokePreviewUrl);
+    };
+  }, []);
 
   const defaultHelpText = single
     ? `PNG, JPG, GIF up to ${maxSizeMB}MB. Recommended size: 1200x800px.`
@@ -94,7 +151,11 @@ export const ImageUpload: React.FC<ImageUploadProps> = ({
       <label className="block text-sm font-medium text-gray-700 mb-1">
         {single ? 'Image' : 'Images'}
       </label>
-      <div className="mt-1 flex justify-center px-4 pt-4 pb-5 sm:px-6 sm:pt-5 sm:pb-6 border-2 border-gray-200 rounded-md">
+      <div
+        className="mt-1 flex justify-center px-4 pt-4 pb-5 sm:px-6 sm:pt-5 sm:pb-6 border-2 border-gray-200 rounded-md"
+        onDragOver={handleDragOver}
+        onDrop={handleDrop}
+      >
         <div className="space-y-1 text-center">
           <div className="flex text-sm text-gray-600">
             <label
@@ -121,7 +182,6 @@ export const ImageUpload: React.FC<ImageUploadProps> = ({
         </div>
       </div>
 
-      {/* Image Previews */}
       {images.length > 0 && (
         <div className={`mt-4 grid gap-2 ${single ? 'grid-cols-1' : 'grid-cols-2 xs:grid-cols-3 sm:grid-cols-4'}`}>
           {images.map((image, index) => (
@@ -136,6 +196,7 @@ export const ImageUpload: React.FC<ImageUploadProps> = ({
                 onClick={() => handleRemoveImage(index)}
                 className="absolute top-1 right-1 bg-red-500 hover:bg-red-600 text-white rounded-lg p-1 transition-colors"
                 aria-label="Remove image"
+                disabled={disabled}
               >
                 <FiX className="w-3 h-3 sm:w-4 sm:h-4" />
               </button>
@@ -146,4 +207,3 @@ export const ImageUpload: React.FC<ImageUploadProps> = ({
     </div>
   );
 };
-

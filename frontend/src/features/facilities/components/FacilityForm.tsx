@@ -194,7 +194,7 @@ export const FacilityForm: React.FC<FacilityFormProps> = ({
         </h3>
         <ImageUpload
           images={images}
-          setImages={setImages}
+          onImagesChange={setImages}
           maxImages={5}
         />
       </div>

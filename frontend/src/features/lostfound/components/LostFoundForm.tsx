@@ -201,7 +201,7 @@ export const LostFoundForm: React.FC<LostFoundFormProps> = ({
         <h3 className="text-lg font-bold mb-4 text-gray-900">Images</h3>
         <ImageUpload
           images={formData.images}
-          setImages={imgs => setFormData(prev => ({ ...prev, images: imgs }))}
+          onImagesChange={imgs => setFormData(prev => ({ ...prev, images: imgs }))}
           maxImages={3}
         />
       </div>

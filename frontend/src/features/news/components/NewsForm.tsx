@@ -154,7 +154,7 @@ export const NewsForm: React.FC<NewsFormProps> = ({
         <h3 className="text-lg font-bold mb-4 text-gray-900">Gallery</h3>
         <ImageUpload
           images={images}
-          setImages={setImages}
+          onImagesChange={setImages}
           maxImages={5}
         />
       </div>

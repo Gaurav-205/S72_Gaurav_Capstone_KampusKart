@@ -222,7 +222,7 @@ export const ClubForm: React.FC<ClubFormProps> = ({
         <h3 className="text-lg font-bold mb-4 text-gray-900">Banner Image</h3>
         <ImageUpload
           images={images}
-          setImages={setImages}
+          onImagesChange={setImages}
           maxImages={1}
         />
       </div>
