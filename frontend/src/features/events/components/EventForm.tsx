@@ -269,7 +269,7 @@ export const EventForm: React.FC<EventFormProps> = ({
         </h3>
         <ImageUpload
           images={formData.images}
-          setImages={imgs => setFormData(prev => ({ ...prev, images: imgs }))}
+          onImagesChange={imgs => setFormData(prev => ({ ...prev, images: imgs }))}
           maxImages={1}
         />
       </div>
