@@ -28,7 +28,10 @@ const listMessages = async ({ page, limit }) => {
     .skip(skip)
     .limit(parsedLimit)
     .populate('sender', 'name profilePicture')
-    .populate('replyTo')
+    .populate({
+      path: 'replyTo',
+      populate: { path: 'sender', select: 'name' }
+    })
     .lean();
 
   const total = await chatRepository.count({ isDeleted: false });
@@ -84,7 +87,10 @@ const sendMessage = async ({ userId, message, replyTo, files }) => {
   const populatedMessage = await chatRepository
     .findById(chatMessage._id)
     .populate('sender', 'name profilePicture')
-    .populate('replyTo')
+    .populate({
+      path: 'replyTo',
+      populate: { path: 'sender', select: 'name' }
+    })
     .lean();
 
   return populatedMessage;
@@ -116,7 +122,10 @@ const editMessage = async ({ messageId, userId, message }) => {
   const updatedMessage = await chatRepository
     .findById(chatMessage._id)
     .populate('sender', 'name profilePicture')
-    .populate('replyTo')
+    .populate({
+      path: 'replyTo',
+      populate: { path: 'sender', select: 'name' }
+    })
     .lean();
 
   return updatedMessage;
