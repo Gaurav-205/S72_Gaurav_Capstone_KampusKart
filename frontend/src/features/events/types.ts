@@ -5,7 +5,12 @@ export interface Event {
   date: string;
   location: string;
   status: 'Upcoming' | 'Ongoing' | 'Completed' | 'Cancelled';
+  isRegistered?: boolean;
   registerUrl?: string;
+  registrationEnabled?: boolean;
+  registrationDeadline?: string;
+  participantLimit?: number;
+  registrations?: EventRegistration[];
   image?: { public_id?: string; url?: string };
   operatingHours?: string;
   contactInfo?: {
@@ -23,7 +28,11 @@ export interface Event {
     };
   };
 }
-
+export interface EventRegistration {
+  user: string;
+  status: 'Registered' | 'Approved' | 'Rejected';
+  registeredAt: string;
+}
 export interface EventFilters {
   status: 'All' | 'Upcoming' | 'Ongoing' | 'Completed' | 'Cancelled';
   search: string;

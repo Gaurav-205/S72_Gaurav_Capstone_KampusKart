@@ -9,7 +9,7 @@ const upload = createMemoryUpload();
 const writeLimiter = createRateLimiter({
   windowMs: 15 * 60 * 1000,
   max: 50,
-  message: { message: 'Too many requests, please try again later' }
+  message: { message: 'Too many requests, please try again later' },
 });
 
 router.get('/', eventsController.listEvents);
@@ -34,6 +34,18 @@ router.delete(
   authMiddleware,
   requireAdmin('Only admin can delete events.'),
   eventsController.deleteEvent
+);
+router.post('/:id/register', authMiddleware, writeLimiter, eventsController.registerForEvent);
+
+router.delete('/:id/register', authMiddleware, writeLimiter, eventsController.withdrawRegistration);
+
+router.get('/user/registrations', authMiddleware, eventsController.getUserRegistrations);
+
+router.get(
+  '/:id/participants',
+  authMiddleware,
+  requireAdmin('Only admin can view participants.'),
+  eventsController.getEventParticipants
 );
 
 module.exports = router;

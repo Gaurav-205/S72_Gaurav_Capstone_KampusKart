@@ -1,4 +1,4 @@
-import { useState, useCallback, useEffect } from 'react';
+import React, { useState, useCallback, useEffect } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import { FeatureModal } from './common/FeatureModal';
 import { SuccessMessage } from './common/SuccessMessage';
@@ -8,30 +8,30 @@ import { socialLinks } from '../utils/socialLinks';
 import { useSearchSuggestions } from '../hooks/useSearchSuggestions';
 
 // Import from the feature directory
-import { 
-  useEvents, 
-  Event, 
-  EventCard, 
-  EventFilters, 
-  EventForm, 
+import {
+  useEvents,
+  Event,
+  EventCard,
+  EventFilters,
+  EventForm,
   EventDetail,
-  eventsApi
+  eventsApi,
 } from '../features/events';
 
 const Events = () => {
   const { user, token } = useAuth();
-  
+
   // Custom hook for state and data fetching
   const {
     events,
     loading,
     error,
-    totalPages,
     filters,
     updateFilters,
-    setPage,
     refresh,
     removeEvent,
+    registerForEvent,
+    withdrawRegistration,
   } = useEvents(token);
 
   // Local UI state
@@ -51,16 +51,12 @@ const Events = () => {
     return suggestions;
   }, []);
 
-  const {
-    showSuggestions,
-    setShowSuggestions,
-    filteredSuggestions,
-    searchRef,
-  } = useSearchSuggestions<Event>({
-    searchInput: filters.search,
-    items: events,
-    buildSuggestions,
-  });
+  const { showSuggestions, setShowSuggestions, filteredSuggestions, searchRef } =
+    useSearchSuggestions<Event>({
+      searchInput: filters.search,
+      items: events,
+      buildSuggestions,
+    });
 
   // Modal handlers
   const openAddModal = () => {
@@ -84,7 +80,7 @@ const Events = () => {
   };
 
   const openDeleteModal = (id: string) => {
-    const event = events.find(e => e._id === id);
+    const event = events.find((e) => e._id === id);
     if (event) {
       setSelectedEvent(event);
       setModalType('delete');
@@ -112,21 +108,38 @@ const Events = () => {
         await eventsApi.createEvent(token, formData);
         setSuccessMessage('Event created successfully!');
       }
+
       refresh();
       closeModal();
-    } catch (err: any) {
-      setFormError(err.message || 'Failed to save event');
+    } catch (err: unknown) {
+      setFormError(err instanceof Error ? err.message : 'Failed to save event');
     } finally {
       setIsSubmitting(false);
     }
   };
-
   const handleDelete = async () => {
     if (!selectedEvent) return;
     const success = await removeEvent(selectedEvent._id);
     if (success) {
       setSuccessMessage('Event deleted successfully!');
       closeModal();
+    }
+  };
+  const handleRegister = async (eventId: string) => {
+    const success = await registerForEvent(eventId);
+
+    if (success) {
+      setSuccessMessage('Successfully registered for the event!');
+      refresh();
+    }
+  };
+
+  const handleWithdraw = async (eventId: string) => {
+    const success = await withdrawRegistration(eventId);
+
+    if (success) {
+      setSuccessMessage('Registration withdrawn successfully!');
+      refresh();
     }
   };
 
@@ -139,7 +152,14 @@ const Events = () => {
   }, [successMessage]);
 
   if (loading && filters.page === 1) {
-    return <PageSkeleton contentType="cards" itemCount={6} filterCount={1} showAddButton={user?.isAdmin} />;
+    return (
+      <PageSkeleton
+        contentType="cards"
+        itemCount={6}
+        filterCount={1}
+        showAddButton={user?.isAdmin}
+      />
+    );
   }
 
   return (
@@ -165,7 +185,7 @@ const Events = () => {
           suggestions={filteredSuggestions}
           showSuggestions={showSuggestions}
           setShowSuggestions={setShowSuggestions}
-          searchRef={searchRef as any}
+          searchRef={searchRef as React.RefObject<HTMLDivElement>}
           onSuggestionSelect={(val) => updateFilters({ search: val })}
         />
 
@@ -180,15 +200,13 @@ const Events = () => {
           {events.length === 0 ? (
             <div className="col-span-full flex flex-col items-center justify-center py-20 text-center">
               <p className="text-xl font-bold text-gray-700">No events found</p>
-              <p className="text-gray-400 text-sm mt-2">Try adjusting your filters or search terms.</p>
+              <p className="text-gray-400 text-sm mt-2">
+                Try adjusting your filters or search terms.
+              </p>
             </div>
           ) : (
             events.map((event) => (
-              <EventCard
-                key={event._id}
-                event={event}
-                onClick={openDetailModal}
-              />
+              <EventCard key={event._id} event={event} onClick={openDetailModal} />
             ))
           )}
         </div>
@@ -198,8 +216,13 @@ const Events = () => {
           isOpen={isModalOpen}
           onClose={closeModal}
           title={
-            modalType === 'form' ? (selectedEvent ? 'Edit Event' : 'Add New Event') :
-            modalType === 'detail' ? 'Event Details' : 'Confirm Delete'
+            modalType === 'form'
+              ? selectedEvent
+                ? 'Edit Event'
+                : 'Add New Event'
+              : modalType === 'detail'
+                ? 'Event Details'
+                : 'Confirm Delete'
           }
           error={formError}
           maxWidth={modalType === 'detail' ? '4xl' : '2xl'}
@@ -212,23 +235,39 @@ const Events = () => {
               error={formError}
             />
           )}
-          
+
           {modalType === 'detail' && selectedEvent && (
             <EventDetail
               event={selectedEvent}
               isAdmin={user?.isAdmin}
+              currentUserId={user?._id || user?.id}
               onEdit={openEditModal}
               onDelete={openDeleteModal}
+              onRegister={handleRegister}
+              onWithdraw={handleWithdraw}
             />
           )}
 
           {modalType === 'delete' && (
             <div className="p-6 text-center">
               <h3 className="text-xl font-bold mb-4">Delete Event?</h3>
-              <p className="text-gray-600 mb-8">Are you sure you want to delete "{selectedEvent?.title}"? This action cannot be undone.</p>
+              <p className="text-gray-600 mb-8">
+                Are you sure you want to delete &quot;{selectedEvent?.title}&quot;? This action
+                cannot be undone.
+              </p>
               <div className="flex justify-center gap-4">
-                <button onClick={closeModal} className="px-6 py-2 border-2 border-gray-200 rounded-lg font-bold">Cancel</button>
-                <button onClick={handleDelete} className="px-6 py-2 bg-red-600 text-white rounded-lg font-bold">Delete Event</button>
+                <button
+                  onClick={closeModal}
+                  className="px-6 py-2 border-2 border-gray-200 rounded-lg font-bold"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={handleDelete}
+                  className="px-6 py-2 bg-red-600 text-white rounded-lg font-bold"
+                >
+                  Delete Event
+                </button>
               </div>
             </div>
           )}

@@ -1,5 +1,17 @@
 import React, { useState } from 'react';
-import { FiCalendar, FiMapPin, FiClock, FiUser, FiMail, FiPhone, FiEdit2, FiTrash2, FiTag, FiFileText } from 'react-icons/fi';
+import { useAuth } from '../../../contexts/AuthContext';
+import { eventsApi } from '../api';
+import {
+  FiCalendar,
+  FiMapPin,
+  FiClock,
+  FiUser,
+  FiMail,
+  FiPhone,
+  FiEdit2,
+  FiTrash2,
+  FiFileText,
+} from 'react-icons/fi';
 import { Event } from '../types';
 import { UI_PATTERNS } from '../../../theme/uiPatterns';
 
@@ -12,7 +24,33 @@ interface EventDetailProps {
 
 export const EventDetail: React.FC<EventDetailProps> = ({ event, isAdmin, onEdit, onDelete }) => {
   const [zoomedImage, setZoomedImage] = useState<string | null>(null);
+  const { token } = useAuth();
 
+  const [isRegistered, setIsRegistered] = useState(event.isRegistered || false);
+
+  const [registrationLoading, setRegistrationLoading] = useState(false);
+  const handleRegistration = async () => {
+    if (!token) {
+      alert('Please login first');
+      return;
+    }
+
+    try {
+      setRegistrationLoading(true);
+
+      if (isRegistered) {
+        await eventsApi.withdrawRegistration(token, event._id);
+        setIsRegistered(false);
+      } else {
+        await eventsApi.registerForEvent(token, event._id);
+        setIsRegistered(true);
+      }
+    } catch (error: unknown) {
+      alert(error instanceof Error ? error.message : 'Registration failed');
+    } finally {
+      setRegistrationLoading(false);
+    }
+  };
   const renderStatus = (status: Event['status']) => {
     let bgColorClass;
     let textColorClass;
@@ -38,7 +76,9 @@ export const EventDetail: React.FC<EventDetailProps> = ({ event, isAdmin, onEdit
         textColorClass = 'text-gray-800';
     }
     return (
-      <span className={`text-xs px-3 py-1.5 rounded-lg font-medium ${bgColorClass} ${textColorClass}`}>
+      <span
+        className={`text-xs px-3 py-1.5 rounded-lg font-medium ${bgColorClass} ${textColorClass}`}
+      >
         {status}
       </span>
     );
@@ -50,14 +90,14 @@ export const EventDetail: React.FC<EventDetailProps> = ({ event, isAdmin, onEdit
       <div className="flex flex-col md:flex-row gap-8">
         <div className="w-full md:w-1/2 flex-shrink-0">
           {event.image?.url ? (
-            <div 
+            <div
               className="relative aspect-video rounded-xl overflow-hidden border-2 border-gray-100 cursor-zoom-in group"
               onClick={() => setZoomedImage(event.image?.url || null)}
             >
-              <img 
-                src={event.image.url} 
-                alt={event.title} 
-                className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110" 
+              <img
+                src={event.image.url}
+                alt={event.title}
+                className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
               />
             </div>
           ) : (
@@ -73,7 +113,9 @@ export const EventDetail: React.FC<EventDetailProps> = ({ event, isAdmin, onEdit
             <div className="flex flex-wrap items-center gap-3 mb-4">
               {renderStatus(event.status)}
             </div>
-            <h2 className="text-3xl font-extrabold text-gray-900 leading-tight mb-2">{event.title}</h2>
+            <h2 className="text-3xl font-extrabold text-gray-900 leading-tight mb-2">
+              {event.title}
+            </h2>
             <div className="flex items-center text-gray-500 text-sm font-medium">
               <FiCalendar className="mr-2" />
               <span>{new Date(event.date).toLocaleDateString('en-US', { dateStyle: 'long' })}</span>
@@ -93,18 +135,34 @@ export const EventDetail: React.FC<EventDetailProps> = ({ event, isAdmin, onEdit
             )}
           </div>
 
-          {event.registerUrl && (
-            <div className="pt-2">
-            <a
-              href={event.registerUrl}
-              target="_blank"
-              rel="noopener noreferrer"
-              className={`block w-full ${UI_PATTERNS.buttonPrimary} text-center py-4 rounded-xl text-lg`}
+          <div className="pt-2 flex flex-col gap-3">
+            {event.registerUrl && (
+              <a
+                href={event.registerUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className={`block w-full ${UI_PATTERNS.buttonPrimary} text-center py-4 rounded-xl text-lg`}
+              >
+                Open Registration Link
+              </a>
+            )}
+
+            <button
+              onClick={handleRegistration}
+              disabled={registrationLoading}
+              className={`w-full py-4 rounded-xl text-lg font-bold transition-all ${
+                isRegistered
+                  ? 'bg-red-100 text-red-700 hover:bg-red-200'
+                  : 'bg-[#00C6A7] text-white hover:opacity-90'
+              }`}
             >
-              Register for this Event
-            </a>
-            </div>
-          )}
+              {registrationLoading
+                ? 'Please wait...'
+                : isRegistered
+                  ? 'Withdraw Registration'
+                  : 'Register for Event'}
+            </button>
+          </div>
         </div>
       </div>
 
@@ -119,7 +177,7 @@ export const EventDetail: React.FC<EventDetailProps> = ({ event, isAdmin, onEdit
               {event.description}
             </p>
           </div>
-          
+
           {(event.mapLocation?.building || event.mapLocation?.floor || event.mapLocation?.room) && (
             <div>
               <h3 className="text-lg font-bold text-gray-900 flex items-center gap-2 mb-4">
@@ -159,7 +217,9 @@ export const EventDetail: React.FC<EventDetailProps> = ({ event, isAdmin, onEdit
                 <div className="flex items-center gap-3">
                   <FiUser className="text-gray-400" />
                   <div>
-                    <p className="text-xs text-gray-400 uppercase font-bold tracking-widest">Name</p>
+                    <p className="text-xs text-gray-400 uppercase font-bold tracking-widest">
+                      Name
+                    </p>
                     <p className="text-gray-900 font-bold">{event.contactInfo.name}</p>
                   </div>
                 </div>
@@ -168,8 +228,15 @@ export const EventDetail: React.FC<EventDetailProps> = ({ event, isAdmin, onEdit
                 <div className="flex items-center gap-3">
                   <FiMail className="text-gray-400" />
                   <div>
-                    <p className="text-xs text-gray-400 uppercase font-bold tracking-widest">Email</p>
-                    <a href={`mailto:${event.contactInfo.email}`} className="text-[#00C6A7] font-bold hover:underline">{event.contactInfo.email}</a>
+                    <p className="text-xs text-gray-400 uppercase font-bold tracking-widest">
+                      Email
+                    </p>
+                    <a
+                      href={`mailto:${event.contactInfo.email}`}
+                      className="text-[#00C6A7] font-bold hover:underline"
+                    >
+                      {event.contactInfo.email}
+                    </a>
                   </div>
                 </div>
               )}
@@ -177,14 +244,23 @@ export const EventDetail: React.FC<EventDetailProps> = ({ event, isAdmin, onEdit
                 <div className="flex items-center gap-3">
                   <FiPhone className="text-gray-400" />
                   <div>
-                    <p className="text-xs text-gray-400 uppercase font-bold tracking-widest">Phone</p>
-                    <a href={`tel:${event.contactInfo.phone}`} className="text-[#00C6A7] font-bold hover:underline">{event.contactInfo.phone}</a>
+                    <p className="text-xs text-gray-400 uppercase font-bold tracking-widest">
+                      Phone
+                    </p>
+                    <a
+                      href={`tel:${event.contactInfo.phone}`}
+                      className="text-[#00C6A7] font-bold hover:underline"
+                    >
+                      {event.contactInfo.phone}
+                    </a>
                   </div>
                 </div>
               )}
-              {!event.contactInfo?.name && !event.contactInfo?.email && !event.contactInfo?.phone && (
-                <p className="text-gray-400 italic text-center py-2">No contact info provided</p>
-              )}
+              {!event.contactInfo?.name &&
+                !event.contactInfo?.email &&
+                !event.contactInfo?.phone && (
+                  <p className="text-gray-400 italic text-center py-2">No contact info provided</p>
+                )}
             </div>
           </div>
 
@@ -209,7 +285,7 @@ export const EventDetail: React.FC<EventDetailProps> = ({ event, isAdmin, onEdit
 
       {/* Image Zoom Modal */}
       {zoomedImage && (
-        <div 
+        <div
           className="fixed inset-0 z-[100] flex items-center justify-center bg-black/90 p-4 cursor-zoom-out"
           onClick={() => setZoomedImage(null)}
         >

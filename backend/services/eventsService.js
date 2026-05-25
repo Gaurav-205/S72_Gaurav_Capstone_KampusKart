@@ -3,7 +3,7 @@ const { ServiceError } = require('./serviceError');
 const mediaService = require('./mediaService');
 const { escapeRegex, parsePagination } = require('./queryUtils');
 
-const listEvents = async ({ status, search, page, limit }) => {
+const listEvents = async ({ status, search, page, limit, userId }) => {
   const query = {};
 
   if (status && status !== 'All') {
@@ -15,16 +15,20 @@ const listEvents = async ({ status, search, page, limit }) => {
     query.$or = [
       { title: { $regex: escaped, $options: 'i' } },
       { description: { $regex: escaped, $options: 'i' } },
-      { location: { $regex: escaped, $options: 'i' } }
+      { location: { $regex: escaped, $options: 'i' } },
     ];
   }
 
   if (page !== undefined && limit !== undefined) {
-    const { page: parsedPage, limit: parsedLimit, skip } = parsePagination({
+    const {
+      page: parsedPage,
+      limit: parsedLimit,
+      skip,
+    } = parsePagination({
       page,
       limit,
       defaultLimit: 9,
-      maxLimit: 100
+      maxLimit: 100,
     });
 
     const totalItems = await eventRepository.count(query);
@@ -36,11 +40,28 @@ const listEvents = async ({ status, search, page, limit }) => {
       .skip(skip)
       .limit(parsedLimit);
 
-    return { events, totalItems, totalPages, page: parsedPage };
+    const formattedEvents = events.map((event) => ({
+      ...event.toObject(),
+      isRegistered: userId
+        ? event.registrations?.some((registration) => registration.user.toString() === userId)
+        : false,
+    }));
+
+    return {
+      events: formattedEvents,
+      totalItems,
+      totalPages,
+      page: parsedPage,
+    };
   }
 
   const events = await eventRepository.find(query).sort({ date: -1 });
-  return events;
+  return events.map((event) => ({
+    ...event.toObject(),
+    isRegistered: userId
+      ? event.registrations?.some((registration) => registration.user.toString() === userId)
+      : false,
+  }));
 };
 
 const createEvent = async ({ data, file }) => {
@@ -53,7 +74,7 @@ const createEvent = async ({ data, file }) => {
     registerUrl,
     operatingHours,
     contactInfo,
-    mapLocation
+    mapLocation,
   } = data;
 
   if (!title || !description || !date || !location) {
@@ -113,7 +134,7 @@ const createEvent = async ({ data, file }) => {
     image,
     operatingHours,
     contactInfo: parsedContactInfo,
-    mapLocation: parsedMapLocation
+    mapLocation: parsedMapLocation,
   });
 
   return event;
@@ -130,7 +151,7 @@ const updateEvent = async ({ eventId, data, file }) => {
     operatingHours,
     contactInfo,
     mapLocation,
-    removeImage
+    removeImage,
   } = data;
 
   if (!title || !description || !date || !location || !status) {
@@ -226,10 +247,99 @@ const deleteEvent = async ({ eventId }) => {
   await event.deleteOne();
   return { message: 'Event deleted.' };
 };
+const registerForEvent = async ({ eventId, userId }) => {
+  const event = await eventRepository.findById(eventId);
 
+  if (!event) {
+    throw new ServiceError('Event not found.', 404);
+  }
+
+  if (!event.registrationEnabled) {
+    throw new ServiceError('Registrations are disabled for this event.', 400);
+  }
+
+  if (event.registrationDeadline && new Date(event.registrationDeadline) < new Date()) {
+    throw new ServiceError('Registration deadline has passed.', 400);
+  }
+
+  const alreadyRegistered = event.registrations.some(
+    (registration) => registration.user.toString() === userId
+  );
+
+  if (alreadyRegistered) {
+    throw new ServiceError('You are already registered for this event.', 400);
+  }
+
+  if (event.participantLimit && event.registrations.length >= event.participantLimit) {
+    throw new ServiceError('Participant limit reached.', 400);
+  }
+
+  event.registrations.push({
+    user: userId,
+    status: 'Registered',
+  });
+
+  await event.save();
+
+  return {
+    message: 'Successfully registered for the event.',
+  };
+};
+
+const withdrawRegistration = async ({ eventId, userId }) => {
+  const event = await eventRepository.findById(eventId);
+
+  if (!event) {
+    throw new ServiceError('Event not found.', 404);
+  }
+
+  const registrationIndex = event.registrations.findIndex(
+    (registration) => registration.user.toString() === userId
+  );
+
+  if (registrationIndex === -1) {
+    throw new ServiceError('Registration not found.', 404);
+  }
+
+  if (event.registrationDeadline && new Date(event.registrationDeadline) < new Date()) {
+    throw new ServiceError('Cannot withdraw after registration deadline.', 400);
+  }
+
+  event.registrations.splice(registrationIndex, 1);
+
+  await event.save();
+
+  return {
+    message: 'Registration withdrawn successfully.',
+  };
+};
+
+const getUserRegistrations = async ({ userId }) => {
+  const events = await eventRepository.find({
+    'registrations.user': userId,
+  });
+
+  return events;
+};
+
+const getEventParticipants = async ({ eventId }) => {
+  const event = await eventRepository
+    .findById(eventId)
+    .populate('registrations.user', 'name email department year program');
+
+  if (!event) {
+    throw new ServiceError('Event not found.', 404);
+  }
+
+  return event.registrations;
+};
 module.exports = {
   listEvents,
   createEvent,
   updateEvent,
-  deleteEvent
+  deleteEvent,
+  registerForEvent,
+  withdrawRegistration,
+  getUserRegistrations,
+  getEventParticipants,
 };
