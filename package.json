@@ -33,5 +33,11 @@
     "husky": "^8.0.0",
     "lint-staged": "^14.0.0",
     "prettier": "^3.1.0"
+  },
+  "dependencies": {
+    "react-intersection-observer": "^10.0.3",
+    "react-virtualized-auto-sizer": "^2.0.3",
+    "react-window": "^2.2.7",
+    "react-window-infinite-loader": "^2.0.1"
   }
 }
