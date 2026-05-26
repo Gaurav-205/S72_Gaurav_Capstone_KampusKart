@@ -493,20 +493,6 @@ const Profile = () => {
         logo={<img src="/Logo.webp" alt="KampusKart Logo" className="h-7 w-7" />}
         brandName="KampusKart"
         socialLinks={socialLinks}
-        mainLinks={[
-          { href: '/news', label: 'News' },
-          { href: '/events', label: 'Events' },
-          { href: '/facilities', label: 'Facilities' },
-          { href: '/campus-map', label: 'Map' },
-        ]}
-        legalLinks={[
-          { href: '/privacy', label: 'Privacy' },
-          { href: '/terms', label: 'Terms' },
-        ]}
-        copyright={{
-          text: `© ${new Date().getFullYear()} KampusKart`,
-          license: 'All rights reserved.',
-        }}
       />
     </div>
   );
