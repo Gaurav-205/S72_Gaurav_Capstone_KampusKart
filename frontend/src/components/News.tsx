@@ -8,19 +8,12 @@ import { socialLinks } from '../utils/socialLinks';
 import { useSearchSuggestions } from '../hooks/useSearchSuggestions';
 
 // Import from the feature directory
-import { 
-  useNews, 
-  NewsItem, 
-  NewsCard, 
-  NewsFilters, 
-  NewsForm, 
-  NewsDetail,
-  newsApi
-} from '../features/news';
+import { useNews, NewsCard, NewsFilters, NewsForm, NewsDetail, newsApi } from '../features/news';
+import type { NewsItem } from '../features/news/types';
 
 const News = () => {
   const { token, user } = useAuth();
-  
+
   // Custom hook for state and data fetching
   const {
     news,
@@ -49,16 +42,12 @@ const News = () => {
     return suggestions;
   }, []);
 
-  const {
-    showSuggestions,
-    setShowSuggestions,
-    filteredSuggestions,
-    searchRef,
-  } = useSearchSuggestions<NewsItem>({
-    searchInput: filters.search,
-    items: news,
-    buildSuggestions,
-  });
+  const { showSuggestions, setShowSuggestions, filteredSuggestions, searchRef } =
+    useSearchSuggestions<NewsItem>({
+      searchInput: filters.search,
+      items: news,
+      buildSuggestions,
+    });
 
   // Modal handlers
   const openAddModal = () => {
@@ -82,7 +71,7 @@ const News = () => {
   };
 
   const openDeleteModal = (id: string) => {
-    const item = news.find(n => n._id === id);
+    const item = news.find((n) => n._id === id);
     if (item) {
       setSelectedNews(item);
       setModalType('delete');
@@ -94,6 +83,15 @@ const News = () => {
     setIsModalOpen(false);
     setSelectedNews(null);
     setFormError(null);
+  };
+
+  const handleDelete = async () => {
+    if (!selectedNews) return;
+    const success = await removeNews(selectedNews._id);
+    if (success) {
+      setSuccessMessage('News deleted successfully!');
+      closeModal();
+    }
   };
 
   // Action handlers
@@ -112,19 +110,10 @@ const News = () => {
       }
       refresh();
       closeModal();
-    } catch (err: any) {
-      setFormError(err.message || 'Failed to save news');
+    } catch (err: unknown) {
+      setFormError(err instanceof Error ? err.message : 'Failed to save news');
     } finally {
       setIsSubmitting(false);
-    }
-  };
-
-  const handleDelete = async () => {
-    if (!selectedNews) return;
-    const success = await removeNews(selectedNews._id);
-    if (success) {
-      setSuccessMessage('News deleted successfully!');
-      closeModal();
     }
   };
 
@@ -137,12 +126,20 @@ const News = () => {
   }, [successMessage]);
 
   if (loading && news.length === 0) {
-    return <PageSkeleton contentType="cards" itemCount={6} filterCount={1} showAddButton={user?.isAdmin} />;
+    return (
+      <PageSkeleton
+        contentType="cards"
+        itemCount={6}
+        filterCount={1}
+        showAddButton={user?.isAdmin}
+      />
+    );
   }
 
-  const filteredNews = news.filter(n => {
-    const matchesSearch = n.title.toLowerCase().includes(filters.search.toLowerCase()) || 
-                         n.description.toLowerCase().includes(filters.search.toLowerCase());
+  const filteredNews = news.filter((n) => {
+    const matchesSearch =
+      n.title.toLowerCase().includes(filters.search.toLowerCase()) ||
+      n.description.toLowerCase().includes(filters.search.toLowerCase());
     const matchesCategory = filters.category === 'All' || n.category === filters.category;
     return matchesSearch && matchesCategory;
   });
@@ -170,8 +167,8 @@ const News = () => {
           suggestions={filteredSuggestions}
           showSuggestions={showSuggestions}
           setShowSuggestions={setShowSuggestions}
-          searchRef={searchRef as any}
-          onSuggestionSelect={(val) => updateFilters({ search: val })}
+          searchRef={searchRef}
+          onSuggestionSelect={(val: string) => updateFilters({ search: val })}
         />
 
         {fetchError && (
@@ -185,7 +182,9 @@ const News = () => {
           {filteredNews.length === 0 ? (
             <div className="col-span-full flex flex-col items-center justify-center py-20 text-center">
               <p className="text-xl font-bold text-gray-700">No news found</p>
-              <p className="text-gray-400 text-sm mt-2">Try adjusting your filters or search terms.</p>
+              <p className="text-gray-400 text-sm mt-2">
+                Try adjusting your filters or search terms.
+              </p>
             </div>
           ) : (
             filteredNews.map((item) => (
@@ -206,11 +205,16 @@ const News = () => {
           isOpen={isModalOpen}
           onClose={closeModal}
           title={
-            modalType === 'form' ? (selectedNews ? 'Edit News' : 'Add News') :
-            modalType === 'detail' ? 'News Details' : 'Confirm Delete'
+            modalType === 'form'
+              ? selectedNews
+                ? 'Edit News'
+                : 'Add News'
+              : modalType === 'detail'
+                ? 'News Details'
+                : 'Confirm Delete'
           }
           error={formError}
-          maxWidth={modalType === 'detail' ? '4xl' : '2xl'}
+          size={modalType === 'detail' ? 'xl' : 'md'}
         >
           {modalType === 'form' && (
             <NewsForm
@@ -220,7 +224,7 @@ const News = () => {
               error={formError}
             />
           )}
-          
+
           {modalType === 'detail' && selectedNews && (
             <NewsDetail
               news={selectedNews}
@@ -233,10 +237,23 @@ const News = () => {
           {modalType === 'delete' && (
             <div className="p-6 text-center">
               <h3 className="text-xl font-bold mb-4">Delete News Item?</h3>
-              <p className="text-gray-600 mb-8">Are you sure you want to delete "{selectedNews?.title}"? This action cannot be undone.</p>
+              <p className="text-gray-600 mb-8">
+                Are you sure you want to delete &quot;{selectedNews?.title}&quot;? This action
+                cannot be undone.
+              </p>
               <div className="flex justify-center gap-4">
-                <button onClick={closeModal} className="px-6 py-2 border-2 border-gray-200 rounded-lg font-bold">Cancel</button>
-                <button onClick={handleDelete} className="px-6 py-2 bg-red-600 text-white rounded-lg font-bold">Delete News</button>
+                <button
+                  onClick={closeModal}
+                  className="px-6 py-2 border-2 border-gray-200 rounded-lg font-bold"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={handleDelete}
+                  className="px-6 py-2 bg-red-600 text-white rounded-lg font-bold"
+                >
+                  Delete News
+                </button>
               </div>
             </div>
           )}

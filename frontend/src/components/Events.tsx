@@ -10,23 +10,23 @@ import { useSearchSuggestions } from '../hooks/useSearchSuggestions';
 // Import from the feature directory
 import {
   useEvents,
-  Event,
   EventCard,
   EventFilters,
   EventForm,
   EventDetail,
   eventsApi,
 } from '../features/events';
+import type { Event } from '../features/events/types';
 
 const Events = () => {
   const { user, token } = useAuth();
 
   // Custom hook for state and data fetching
-  const {
-    events,
-    loading,
-    error,
-    filters,
+ const {
+  events,
+  loading,
+  error: fetchError,
+  filters,
     updateFilters,
     refresh,
     removeEvent,
@@ -185,13 +185,13 @@ const Events = () => {
           suggestions={filteredSuggestions}
           showSuggestions={showSuggestions}
           setShowSuggestions={setShowSuggestions}
-          searchRef={searchRef as React.RefObject<HTMLDivElement>}
-          onSuggestionSelect={(val) => updateFilters({ search: val })}
+searchRef={searchRef}
+onSuggestionSelect={(val: string) => updateFilters({ search: val })}
         />
 
-        {error && (
+        {fetchError && (
           <div className="mb-6 p-4 bg-red-50 text-red-700 rounded-lg font-medium border-2 border-red-100">
-            {error}
+            {fetchError}
           </div>
         )}
 
@@ -225,7 +225,7 @@ const Events = () => {
                 : 'Confirm Delete'
           }
           error={formError}
-          maxWidth={modalType === 'detail' ? '4xl' : '2xl'}
+          size={modalType === 'detail' ? 'xl' : 'md'}
         >
           {modalType === 'form' && (
             <EventForm

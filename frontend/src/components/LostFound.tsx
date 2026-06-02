@@ -8,24 +8,24 @@ import { socialLinks } from '../utils/socialLinks';
 import { useSearchSuggestions } from '../hooks/useSearchSuggestions';
 
 // Import from the feature directory
-import { 
-  useLostFound, 
-  LostFoundItem, 
-  LostFoundCard, 
-  LostFoundFilters, 
-  LostFoundForm, 
+import {
+  useLostFound,
+  LostFoundCard,
+  LostFoundFilters,
+  LostFoundForm,
   LostFoundDetail,
-  lostFoundApi
+  lostFoundApi,
 } from '../features/lostfound';
+import type { LostFoundItem } from '../features/lostfound/types';
 
 const LostFound = () => {
   const { token, user } = useAuth();
-  
+
   // Custom hook for state and data fetching
   const {
     items,
     loading,
-    error,
+    error: fetchError,
     totalPages,
     isFetchingMore,
     isFiltering,
@@ -54,16 +54,12 @@ const LostFound = () => {
     return suggestions;
   }, []);
 
-  const {
-    showSuggestions,
-    setShowSuggestions,
-    filteredSuggestions,
-    searchRef,
-  } = useSearchSuggestions<LostFoundItem>({
-    searchInput: filters.search,
-    items,
-    buildSuggestions,
-  });
+  const { showSuggestions, setShowSuggestions, filteredSuggestions, searchRef } =
+    useSearchSuggestions<LostFoundItem>({
+      searchInput: filters.search,
+      items,
+      buildSuggestions,
+    });
 
   // Modal handlers
   const openAddModal = () => {
@@ -87,7 +83,7 @@ const LostFound = () => {
   };
 
   const openDeleteModal = (id: string) => {
-    const item = items.find(i => i._id === id);
+    const item = items.find((i) => i._id === id);
     if (item) {
       setSelectedItem(item);
       setModalType('delete');
@@ -117,8 +113,8 @@ const LostFound = () => {
       }
       refresh();
       closeModal();
-    } catch (err: any) {
-      setFormError(err.message || 'Failed to save item');
+    } catch (err: unknown) {
+      setFormError(err instanceof Error ? err.message : 'Failed to save item');
     } finally {
       setIsSubmitting(false);
     }
@@ -129,7 +125,9 @@ const LostFound = () => {
     if (success) {
       setSuccessMessage('Item marked as resolved!');
       if (modalType === 'detail') {
-        setSelectedItem(prev => prev ? { ...prev, resolved: true } : null);
+        setSelectedItem((prev: LostFoundItem | null) =>
+          prev ? { ...prev, resolved: true } : null
+        );
       }
     }
   };
@@ -145,16 +143,19 @@ const LostFound = () => {
 
   // Infinite scroll observer
   const observer = useRef<IntersectionObserver | null>(null);
-  const lastItemRef = useCallback((node: HTMLDivElement | null) => {
-    if (isFetchingMore) return;
-    if (observer.current) observer.current.disconnect();
-    observer.current = new window.IntersectionObserver(entries => {
-      if (entries[0].isIntersecting && filters.page < totalPages) {
-        setPage(filters.page + 1);
-      }
-    });
-    if (node) observer.current.observe(node);
-  }, [isFetchingMore, filters.page, totalPages, setPage]);
+  const lastItemRef = useCallback(
+    (node: HTMLDivElement | null) => {
+      if (isFetchingMore) return;
+      if (observer.current) observer.current.disconnect();
+      observer.current = new window.IntersectionObserver((entries) => {
+        if (entries[0].isIntersecting && filters.page < totalPages) {
+          setPage(filters.page + 1);
+        }
+      });
+      if (node) observer.current.observe(node);
+    },
+    [isFetchingMore, filters.page, totalPages, setPage]
+  );
 
   // Success message auto-hide
   useEffect(() => {
@@ -189,9 +190,15 @@ const LostFound = () => {
           suggestions={filteredSuggestions}
           showSuggestions={showSuggestions}
           setShowSuggestions={setShowSuggestions}
-          searchRef={searchRef as any}
-          onSuggestionSelect={(val) => updateFilters({ search: val })}
+          searchRef={searchRef}
+          onSuggestionSelect={(val: string) => updateFilters({ search: val })}
         />
+
+        {fetchError && (
+          <div className="mb-6 p-4 bg-red-50 text-red-700 rounded-lg font-medium border-2 border-red-100">
+            {fetchError}
+          </div>
+        )}
 
         {/* Active Filters Display */}
         {(filters.search || filters.type !== 'all' || filters.resolved !== 'all') && (
@@ -225,7 +232,10 @@ const LostFound = () => {
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
           {isFiltering ? (
             Array.from({ length: 6 }).map((_, idx) => (
-              <div key={idx} className="bg-white rounded-lg border-2 border-gray-200 overflow-hidden animate-pulse h-[400px]">
+              <div
+                key={idx}
+                className="bg-white rounded-lg border-2 border-gray-200 overflow-hidden animate-pulse h-[400px]"
+              >
                 <div className="h-64 bg-gray-200"></div>
                 <div className="p-6 space-y-3">
                   <div className="h-6 bg-gray-200 rounded w-3/4"></div>
@@ -274,11 +284,16 @@ const LostFound = () => {
           isOpen={isModalOpen}
           onClose={closeModal}
           title={
-            modalType === 'form' ? (selectedItem ? 'Edit Item' : 'Add New Item') :
-            modalType === 'detail' ? 'Item Details' : 'Confirm Delete'
+            modalType === 'form'
+              ? selectedItem
+                ? 'Edit Item'
+                : 'Add New Item'
+              : modalType === 'detail'
+                ? 'Item Details'
+                : 'Confirm Delete'
           }
           error={formError}
-          maxWidth={modalType === 'detail' ? '3xl' : '2xl'}
+          size={modalType === 'detail' ? 'lg' : 'md'}
         >
           {modalType === 'form' && (
             <LostFoundForm
@@ -288,7 +303,7 @@ const LostFound = () => {
               error={formError}
             />
           )}
-          
+
           {modalType === 'detail' && selectedItem && (
             <LostFoundDetail
               item={selectedItem}
@@ -303,10 +318,22 @@ const LostFound = () => {
           {modalType === 'delete' && (
             <div className="p-6 text-center">
               <h3 className="text-xl font-bold mb-4">Are you sure?</h3>
-              <p className="text-gray-600 mb-8">This action cannot be undone. This will permanently delete your post.</p>
+              <p className="text-gray-600 mb-8">
+                This action cannot be undone. This will permanently delete your post.
+              </p>
               <div className="flex justify-center gap-4">
-                <button onClick={closeModal} className="px-6 py-2 border-2 border-gray-200 rounded-lg font-bold">Cancel</button>
-                <button onClick={handleDelete} className="px-6 py-2 bg-red-600 text-white rounded-lg font-bold">Delete Post</button>
+                <button
+                  onClick={closeModal}
+                  className="px-6 py-2 border-2 border-gray-200 rounded-lg font-bold"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={handleDelete}
+                  className="px-6 py-2 bg-red-600 text-white rounded-lg font-bold"
+                >
+                  Delete Post
+                </button>
               </div>
             </div>
           )}

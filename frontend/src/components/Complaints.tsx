@@ -8,24 +8,24 @@ import { socialLinks } from '../utils/socialLinks';
 import { useSearchSuggestions } from '../hooks/useSearchSuggestions';
 
 // Import from the feature directory
-import { 
-  useComplaints, 
-  Complaint, 
-  ComplaintCard, 
-  ComplaintFilters, 
-  ComplaintForm, 
+import {
+  useComplaints,
+  ComplaintCard,
+  ComplaintFilters,
+  ComplaintForm,
   ComplaintDetail,
-  complaintsApi
+  complaintsApi,
 } from '../features/complaints';
+import type { Complaint } from '../features/complaints/types';
 
 const Complaints = () => {
   const { token, user } = useAuth();
-  
+
   // Custom hook for state and data fetching
   const {
     complaints,
     loading,
-    error,
+    error: fetchError,
     totalPages,
     isFetchingMore,
     isFiltering,
@@ -49,20 +49,17 @@ const Complaints = () => {
     const suggestions: string[] = [];
     const normalizedQuery = query.toLowerCase();
     if (complaint.title?.toLowerCase().includes(normalizedQuery)) suggestions.push(complaint.title);
-    if (complaint.category?.toLowerCase().includes(normalizedQuery)) suggestions.push(complaint.category);
+    if (complaint.category?.toLowerCase().includes(normalizedQuery))
+      suggestions.push(complaint.category);
     return suggestions;
   }, []);
 
-  const {
-    showSuggestions,
-    setShowSuggestions,
-    filteredSuggestions,
-    searchRef,
-  } = useSearchSuggestions<Complaint>({
-    searchInput: filters.search,
-    items: complaints,
-    buildSuggestions,
-  });
+  const { showSuggestions, setShowSuggestions, filteredSuggestions, searchRef } =
+    useSearchSuggestions<Complaint>({
+      searchInput: filters.search,
+      items: complaints,
+      buildSuggestions,
+    });
 
   // Modal handlers
   const openAddModal = () => {
@@ -86,7 +83,7 @@ const Complaints = () => {
   };
 
   const openDeleteModal = (id: string) => {
-    const complaint = complaints.find(c => c._id === id);
+    const complaint = complaints.find((c) => c._id === id);
     if (complaint) {
       setSelectedComplaint(complaint);
       setModalType('delete');
@@ -116,8 +113,8 @@ const Complaints = () => {
       }
       refresh();
       closeModal();
-    } catch (err: any) {
-      setFormError(err.message || 'Failed to save complaint');
+    } catch (err: unknown) {
+      setFormError(err instanceof Error ? err.message : 'Failed to save complaint');
     } finally {
       setIsSubmitting(false);
     }
@@ -134,16 +131,19 @@ const Complaints = () => {
 
   // Infinite scroll observer
   const observer = useRef<IntersectionObserver | null>(null);
-  const lastItemRef = useCallback((node: HTMLDivElement | null) => {
-    if (isFetchingMore) return;
-    if (observer.current) observer.current.disconnect();
-    observer.current = new window.IntersectionObserver(entries => {
-      if (entries[0].isIntersecting && filters.page < totalPages) {
-        setPage(filters.page + 1);
-      }
-    });
-    if (node) observer.current.observe(node);
-  }, [isFetchingMore, filters.page, totalPages, setPage]);
+  const lastItemRef = useCallback(
+    (node: HTMLDivElement | null) => {
+      if (isFetchingMore) return;
+      if (observer.current) observer.current.disconnect();
+      observer.current = new window.IntersectionObserver((entries) => {
+        if (entries[0].isIntersecting && filters.page < totalPages) {
+          setPage(filters.page + 1);
+        }
+      });
+      if (node) observer.current.observe(node);
+    },
+    [isFetchingMore, filters.page, totalPages, setPage]
+  );
 
   // Success message auto-hide
   useEffect(() => {
@@ -178,9 +178,15 @@ const Complaints = () => {
           suggestions={filteredSuggestions}
           showSuggestions={showSuggestions}
           setShowSuggestions={setShowSuggestions}
-          searchRef={searchRef as any}
-          onSuggestionSelect={(val) => updateFilters({ search: val })}
+          searchRef={searchRef}
+          onSuggestionSelect={(val: string) => updateFilters({ search: val })}
         />
+
+        {fetchError && (
+          <div className="mb-6 p-4 bg-red-50 text-red-700 rounded-lg font-medium border-2 border-red-100">
+            {fetchError}
+          </div>
+        )}
 
         {/* Active Filters Display */}
         {(filters.search || filters.category !== 'all' || filters.status !== 'All') && (
@@ -214,7 +220,10 @@ const Complaints = () => {
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
           {isFiltering ? (
             Array.from({ length: 6 }).map((_, idx) => (
-              <div key={idx} className="bg-white rounded-lg border-2 border-gray-200 overflow-hidden animate-pulse h-[400px]">
+              <div
+                key={idx}
+                className="bg-white rounded-lg border-2 border-gray-200 overflow-hidden animate-pulse h-[400px]"
+              >
                 <div className="h-64 bg-gray-200"></div>
                 <div className="p-6 space-y-3">
                   <div className="h-6 bg-gray-200 rounded w-3/4"></div>
@@ -225,11 +234,16 @@ const Complaints = () => {
           ) : complaints.length === 0 ? (
             <div className="col-span-full flex flex-col items-center justify-center py-20 text-center">
               <p className="text-xl font-bold text-gray-700">No complaints found</p>
-              <p className="text-gray-400 text-sm mt-2">Try adjusting your filters or search terms.</p>
+              <p className="text-gray-400 text-sm mt-2">
+                Try adjusting your filters or search terms.
+              </p>
             </div>
           ) : (
             complaints.map((complaint, idx) => (
-              <div key={complaint._id} ref={idx === complaints.length - 1 ? lastItemRef : undefined}>
+              <div
+                key={complaint._id}
+                ref={idx === complaints.length - 1 ? lastItemRef : undefined}
+              >
                 <ComplaintCard
                   complaint={complaint}
                   currentUser={user}
@@ -261,11 +275,16 @@ const Complaints = () => {
           isOpen={isModalOpen}
           onClose={closeModal}
           title={
-            modalType === 'form' ? (selectedComplaint ? 'Edit Complaint' : 'Add New Complaint') :
-            modalType === 'detail' ? 'Complaint Details' : 'Confirm Delete'
+            modalType === 'form'
+              ? selectedComplaint
+                ? 'Edit Complaint'
+                : 'Add New Complaint'
+              : modalType === 'detail'
+                ? 'Complaint Details'
+                : 'Confirm Delete'
           }
           error={formError}
-          maxWidth={modalType === 'detail' ? '4xl' : '2xl'}
+          size={modalType === 'detail' ? 'xl' : 'md'}
         >
           {modalType === 'form' && (
             <ComplaintForm
@@ -276,7 +295,7 @@ const Complaints = () => {
               isAdmin={user?.isAdmin}
             />
           )}
-          
+
           {modalType === 'detail' && selectedComplaint && (
             <ComplaintDetail
               complaint={selectedComplaint}
@@ -289,10 +308,22 @@ const Complaints = () => {
           {modalType === 'delete' && (
             <div className="p-6 text-center">
               <h3 className="text-xl font-bold mb-4">Delete Complaint?</h3>
-              <p className="text-gray-600 mb-8">Are you sure you want to delete this complaint? This action cannot be undone.</p>
+              <p className="text-gray-600 mb-8">
+                Are you sure you want to delete this complaint? This action cannot be undone.
+              </p>
               <div className="flex justify-center gap-4">
-                <button onClick={closeModal} className="px-6 py-2 border-2 border-gray-200 rounded-lg font-bold">Cancel</button>
-                <button onClick={handleDelete} className="px-6 py-2 bg-red-600 text-white rounded-lg font-bold">Delete Complaint</button>
+                <button
+                  onClick={closeModal}
+                  className="px-6 py-2 border-2 border-gray-200 rounded-lg font-bold"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={handleDelete}
+                  className="px-6 py-2 bg-red-600 text-white rounded-lg font-bold"
+                >
+                  Delete Complaint
+                </button>
               </div>
             </div>
           )}

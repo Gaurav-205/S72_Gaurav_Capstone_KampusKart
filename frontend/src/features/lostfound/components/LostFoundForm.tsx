@@ -24,7 +24,7 @@ export const LostFoundForm: React.FC<LostFoundFormProps> = ({
     location: item?.location || '',
     date: item?.date ? new Date(item.date).toISOString().split('T')[0] : '',
     contact: item?.contact || '',
-    images: (item?.images || []).map(img => ({
+    images: (item?.images || []).map((img) => ({
       previewUrl: img.url,
       public_id: img.public_id,
       url: img.url,
@@ -76,14 +76,15 @@ export const LostFoundForm: React.FC<LostFoundFormProps> = ({
 
   const handleBlur = (name: string, value: string) => {
     const error = validateField(name, value);
-    setFieldErrors(prev => ({ ...prev, [name]: error || '' }));
+    setFieldErrors((prev) => ({ ...prev, [name]: error || '' }));
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     const errors: Record<string, string> = {};
-    ['title', 'description', 'date', 'contact'].forEach(name => {
-      const error = validateField(name, (formData as any)[name]);
+    const requiredFields = ['title', 'description', 'date', 'contact'] as const;
+    requiredFields.forEach((name) => {
+      const error = validateField(name, formData[name]);
       if (error) errors[name] = error;
     });
 
@@ -100,13 +101,15 @@ export const LostFoundForm: React.FC<LostFoundFormProps> = ({
     submitData.append('location', formData.location.trim());
     submitData.append('date', formData.date);
     submitData.append('contact', formData.contact.trim());
-    
-    formData.images.forEach(img => {
+
+    formData.images.forEach((img) => {
       if (img.file) submitData.append('images', img.file);
     });
 
     if (item) {
-      const keepPublicIds = formData.images.filter(img => img.public_id).map(img => img.public_id);
+      const keepPublicIds = formData.images
+        .filter((img) => img.public_id)
+        .map((img) => img.public_id);
       submitData.append('keepImages', JSON.stringify(keepPublicIds));
     }
 
@@ -123,14 +126,19 @@ export const LostFoundForm: React.FC<LostFoundFormProps> = ({
           <div>
             <label className="block text-sm font-bold text-gray-700 mb-2">Item Type</label>
             <div className="flex gap-4">
-              {['lost', 'found'].map(t => (
+              {['lost', 'found'].map((t) => (
                 <label key={t} className="flex items-center gap-2 cursor-pointer">
                   <input
                     type="radio"
                     name="type"
                     value={t}
                     checked={formData.type === t}
-                    onChange={e => setFormData(prev => ({ ...prev, type: e.target.value as any }))}
+                    onChange={(e) =>
+                      setFormData((prev) => ({
+                        ...prev,
+                        type: e.target.value as LostFoundItem['type'],
+                      }))
+                    }
                     className="w-4 h-4 text-[#00C6A7] focus:ring-[#00C6A7]"
                   />
                   <span className="text-sm font-semibold capitalize">{t} Item</span>
@@ -144,29 +152,33 @@ export const LostFoundForm: React.FC<LostFoundFormProps> = ({
             <input
               type="text"
               value={formData.title}
-              onChange={e => setFormData(prev => ({ ...prev, title: e.target.value }))}
-              onBlur={e => handleBlur('title', e.target.value)}
+              onChange={(e) => setFormData((prev) => ({ ...prev, title: e.target.value }))}
+              onBlur={(e) => handleBlur('title', e.target.value)}
               className={`w-full px-4 py-3 rounded-lg border-2 bg-gray-50 focus:outline-none focus:ring-2 focus:ring-[#00C6A7] transition-all ${
                 fieldErrors.title ? 'border-red-500' : 'border-gray-200'
               }`}
               placeholder="What did you lose/find?"
             />
-            {fieldErrors.title && <p className="mt-1 text-xs text-red-500 font-medium">{fieldErrors.title}</p>}
+            {fieldErrors.title && (
+              <p className="mt-1 text-xs text-red-500 font-medium">{fieldErrors.title}</p>
+            )}
           </div>
 
           <div>
             <label className="block text-sm font-bold text-gray-700 mb-2">Description *</label>
             <textarea
               value={formData.description}
-              onChange={e => setFormData(prev => ({ ...prev, description: e.target.value }))}
-              onBlur={e => handleBlur('description', e.target.value)}
+              onChange={(e) => setFormData((prev) => ({ ...prev, description: e.target.value }))}
+              onBlur={(e) => handleBlur('description', e.target.value)}
               rows={4}
               className={`w-full px-4 py-3 rounded-lg border-2 bg-gray-50 focus:outline-none focus:ring-2 focus:ring-[#00C6A7] transition-all ${
                 fieldErrors.description ? 'border-red-500' : 'border-gray-200'
               }`}
               placeholder="Provide details like color, brand, etc."
             />
-            {fieldErrors.description && <p className="mt-1 text-xs text-red-500 font-medium">{fieldErrors.description}</p>}
+            {fieldErrors.description && (
+              <p className="mt-1 text-xs text-red-500 font-medium">{fieldErrors.description}</p>
+            )}
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -175,7 +187,7 @@ export const LostFoundForm: React.FC<LostFoundFormProps> = ({
               <input
                 type="text"
                 value={formData.location}
-                onChange={e => setFormData(prev => ({ ...prev, location: e.target.value }))}
+                onChange={(e) => setFormData((prev) => ({ ...prev, location: e.target.value }))}
                 className="w-full px-4 py-3 rounded-lg border-2 border-gray-200 bg-gray-50 focus:outline-none focus:ring-2 focus:ring-[#00C6A7] transition-all"
                 placeholder="Where?"
               />
@@ -185,13 +197,15 @@ export const LostFoundForm: React.FC<LostFoundFormProps> = ({
               <input
                 type="date"
                 value={formData.date}
-                onChange={e => setFormData(prev => ({ ...prev, date: e.target.value }))}
-                onBlur={e => handleBlur('date', e.target.value)}
+                onChange={(e) => setFormData((prev) => ({ ...prev, date: e.target.value }))}
+                onBlur={(e) => handleBlur('date', e.target.value)}
                 className={`w-full px-4 py-3 rounded-lg border-2 bg-gray-50 focus:outline-none focus:ring-2 focus:ring-[#00C6A7] transition-all ${
                   fieldErrors.date ? 'border-red-500' : 'border-gray-200'
                 }`}
               />
-              {fieldErrors.date && <p className="mt-1 text-xs text-red-500 font-medium">{fieldErrors.date}</p>}
+              {fieldErrors.date && (
+                <p className="mt-1 text-xs text-red-500 font-medium">{fieldErrors.date}</p>
+              )}
             </div>
           </div>
         </div>
@@ -201,8 +215,8 @@ export const LostFoundForm: React.FC<LostFoundFormProps> = ({
         <h3 className="text-lg font-bold mb-4 text-gray-900">Images</h3>
         <ImageUpload
           images={formData.images}
-          setImages={imgs => setFormData(prev => ({ ...prev, images: imgs }))}
-          maxImages={3}
+          onImagesChange={(imgs: ImageFile[]) => setFormData((prev) => ({ ...prev, images: imgs }))}
+          maxImages={4}
         />
       </div>
 
@@ -211,14 +225,16 @@ export const LostFoundForm: React.FC<LostFoundFormProps> = ({
         <input
           type="text"
           value={formData.contact}
-          onChange={e => setFormData(prev => ({ ...prev, contact: e.target.value }))}
-          onBlur={e => handleBlur('contact', e.target.value)}
+          onChange={(e) => setFormData((prev) => ({ ...prev, contact: e.target.value }))}
+          onBlur={(e) => handleBlur('contact', e.target.value)}
           className={`w-full px-4 py-3 rounded-lg border-2 bg-gray-50 focus:outline-none focus:ring-2 focus:ring-[#00C6A7] transition-all ${
             fieldErrors.contact ? 'border-red-500' : 'border-gray-200'
           }`}
           placeholder="Email or Phone Number"
         />
-        {fieldErrors.contact && <p className="mt-1 text-xs text-red-500 font-medium">{fieldErrors.contact}</p>}
+        {fieldErrors.contact && (
+          <p className="mt-1 text-xs text-red-500 font-medium">{fieldErrors.contact}</p>
+        )}
       </div>
 
       {formError && (

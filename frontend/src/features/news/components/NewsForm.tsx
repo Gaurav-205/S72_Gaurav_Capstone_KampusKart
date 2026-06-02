@@ -24,7 +24,7 @@ export const NewsForm: React.FC<NewsFormProps> = ({
   });
 
   const [images, setImages] = useState<ImageFile[]>(
-    (news?.images || []).map(img => ({
+    (news?.images || []).map((img) => ({
       previewUrl: img.url,
       public_id: img.public_id,
       url: img.url,
@@ -46,9 +46,10 @@ export const NewsForm: React.FC<NewsFormProps> = ({
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     const errors: Record<string, string> = {};
-    
-    ['title', 'description', 'date'].forEach(field => {
-      const err = validateField(field, (formData as any)[field]);
+
+    const requiredFields = ['title', 'description', 'date'] as const;
+    requiredFields.forEach((field) => {
+      const err = validateField(field, formData[field]);
       if (err) errors[field] = err;
     });
 
@@ -64,12 +65,12 @@ export const NewsForm: React.FC<NewsFormProps> = ({
     submitData.append('date', formData.date);
     submitData.append('category', formData.category);
 
-    images.forEach(img => {
+    images.forEach((img) => {
       if (img.file) submitData.append('images', img.file);
     });
 
     if (news) {
-      const keepPublicIds = images.filter(img => img.public_id).map(img => img.public_id);
+      const keepPublicIds = images.filter((img) => img.public_id).map((img) => img.public_id);
       submitData.append('keepImages', JSON.stringify(keepPublicIds));
     }
 
@@ -90,7 +91,7 @@ export const NewsForm: React.FC<NewsFormProps> = ({
                 <input
                   type="text"
                   value={formData.title}
-                  onChange={e => setFormData(prev => ({ ...prev, title: e.target.value }))}
+                  onChange={(e) => setFormData((prev) => ({ ...prev, title: e.target.value }))}
                   className={`w-full pl-10 pr-4 py-3 rounded-lg border-2 bg-gray-50 focus:outline-none focus:ring-2 focus:ring-[#00C6A7] transition-all ${
                     fieldErrors.title ? 'border-red-500' : 'border-gray-200'
                   }`}
@@ -98,7 +99,9 @@ export const NewsForm: React.FC<NewsFormProps> = ({
                 />
                 <FiTag className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
               </div>
-              {fieldErrors.title && <p className="mt-1 text-xs text-red-500 font-medium">{fieldErrors.title}</p>}
+              {fieldErrors.title && (
+                <p className="mt-1 text-xs text-red-500 font-medium">{fieldErrors.title}</p>
+              )}
             </div>
             <div>
               <label className="block text-sm font-bold text-gray-700 mb-2">Date *</label>
@@ -106,14 +109,16 @@ export const NewsForm: React.FC<NewsFormProps> = ({
                 <input
                   type="date"
                   value={formData.date}
-                  onChange={e => setFormData(prev => ({ ...prev, date: e.target.value }))}
+                  onChange={(e) => setFormData((prev) => ({ ...prev, date: e.target.value }))}
                   className={`w-full pl-10 pr-4 py-3 rounded-lg border-2 bg-gray-50 focus:outline-none focus:ring-2 focus:ring-[#00C6A7] transition-all ${
                     fieldErrors.date ? 'border-red-500' : 'border-gray-200'
                   }`}
                 />
                 <FiCalendar className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
               </div>
-              {fieldErrors.date && <p className="mt-1 text-xs text-red-500 font-medium">{fieldErrors.date}</p>}
+              {fieldErrors.date && (
+                <p className="mt-1 text-xs text-red-500 font-medium">{fieldErrors.date}</p>
+              )}
             </div>
           </div>
 
@@ -122,7 +127,7 @@ export const NewsForm: React.FC<NewsFormProps> = ({
             <div className="relative">
               <textarea
                 value={formData.description}
-                onChange={e => setFormData(prev => ({ ...prev, description: e.target.value }))}
+                onChange={(e) => setFormData((prev) => ({ ...prev, description: e.target.value }))}
                 rows={4}
                 className={`w-full pl-10 pr-4 py-3 rounded-lg border-2 bg-gray-50 focus:outline-none focus:ring-2 focus:ring-[#00C6A7] transition-all ${
                   fieldErrors.description ? 'border-red-500' : 'border-gray-200'
@@ -131,14 +136,16 @@ export const NewsForm: React.FC<NewsFormProps> = ({
               />
               <FiFileText className="absolute left-3 top-4 text-gray-400" />
             </div>
-            {fieldErrors.description && <p className="mt-1 text-xs text-red-500 font-medium">{fieldErrors.description}</p>}
+            {fieldErrors.description && (
+              <p className="mt-1 text-xs text-red-500 font-medium">{fieldErrors.description}</p>
+            )}
           </div>
 
           <div>
             <label className="block text-sm font-bold text-gray-700 mb-2">Category</label>
             <select
               value={formData.category}
-              onChange={e => setFormData(prev => ({ ...prev, category: e.target.value }))}
+              onChange={(e) => setFormData((prev) => ({ ...prev, category: e.target.value }))}
               className="w-full px-4 py-3 rounded-lg border-2 border-gray-200 bg-gray-50 focus:outline-none focus:ring-2 focus:ring-[#00C6A7]"
             >
               <option value="Campus">Campus</option>
@@ -152,11 +159,7 @@ export const NewsForm: React.FC<NewsFormProps> = ({
 
       <div className="border-2 border-gray-200 rounded-lg p-6">
         <h3 className="text-lg font-bold mb-4 text-gray-900">Gallery</h3>
-        <ImageUpload
-          images={images}
-          setImages={setImages}
-          maxImages={5}
-        />
+        <ImageUpload images={images} onImagesChange={setImages} maxImages={3} />
       </div>
 
       {formError && (

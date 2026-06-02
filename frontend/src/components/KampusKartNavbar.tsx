@@ -1,4 +1,4 @@
-import React, { useMemo, useCallback } from 'react';
+import React, { useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { Navbar1 } from './ui/shadcnblocks-com-navbar1';
@@ -13,95 +13,104 @@ const KampusKartNavbar: React.FC = () => {
     navigate('/login');
   }, [logout, navigate]);
 
-  const menuItems = useMemo(
-    () => [
-      {
-        title: 'Home',
-        url: isLoggedIn ? '/home' : '/',
-      },
-      {
-        title: 'Features',
-        url: '#',
-        items: [
-          {
-            title: 'Lost & Found',
-            description: 'Report or find lost items on campus',
-            url: isLoggedIn ? '/lostfound' : '/login',
-            locked: !isLoggedIn,
-          },
-          {
-            title: 'Complaints',
-            description: 'Submit and track campus complaints',
-            url: isLoggedIn ? '/complaints' : '/login',
-            locked: !isLoggedIn,
-          },
-          {
-            title: 'Events',
-            description: 'Discover and join campus events',
-            url: isLoggedIn ? '/events' : '/login',
-            locked: !isLoggedIn,
-          },
-          {
-            title: 'Clubs Recruitment',
-            description: 'Join student clubs and organizations',
-            url: isLoggedIn ? '/clubs-recruitment' : '/login',
-            locked: !isLoggedIn,
-          },
-          {
-            title: 'News',
-            description: 'Stay updated with campus news',
-            url: isLoggedIn ? '/news' : '/login',
-            locked: !isLoggedIn,
-          },
-          {
-            title: 'Facilities',
-            description: 'Explore campus facilities',
-            url: isLoggedIn ? '/facilities' : '/login',
-            locked: !isLoggedIn,
-          },
-        ],
-      },
-      {
-        title: 'Campus',
-        url: '#',
-        items: [
-          {
-            title: 'Campus Map',
-            description: 'Navigate the campus with interactive map',
-            url: isLoggedIn ? '/campus-map' : '/login',
-            locked: !isLoggedIn,
-          },
-          {
-            title: 'Chat',
-            description: 'Connect with students and staff',
-            url: isLoggedIn ? '/chat' : '/login',
-            locked: !isLoggedIn,
-          },
-        ],
-      },
-    ],
-    [isLoggedIn]
-  );
+const menuItems = useMemo(
+  () => [
+    {
+      title: 'Home',
+      url: isLoggedIn ? '/home' : '/',
+    },
+    {
+      title: 'Features',
+      url: '#',
+      items: [
+        {
+          title: 'Lost & Found',
+          description: 'Report or find lost items on campus',
+          url: isLoggedIn ? '/lostfound' : '/login',
+          locked: !isLoggedIn,
+        },
+        {
+          title: 'Complaints',
+          description: 'Submit and track campus complaints',
+          url: isLoggedIn ? '/complaints' : '/login',
+          locked: !isLoggedIn,
+        },
+        {
+          title: 'Events',
+          description: 'Discover and join campus events',
+          url: isLoggedIn ? '/events' : '/login',
+          locked: !isLoggedIn,
+        },
+        {
+          title: 'Clubs Recruitment',
+          description: 'Join student clubs and organizations',
+          url: isLoggedIn ? '/clubs-recruitment' : '/login',
+          locked: !isLoggedIn,
+        },
+        {
+          title: 'News',
+          description: 'Stay updated with campus news',
+          url: isLoggedIn ? '/news' : '/login',
+          locked: !isLoggedIn,
+        },
+        {
+          title: 'Facilities',
+          description: 'Explore campus facilities',
+          url: isLoggedIn ? '/facilities' : '/login',
+          locked: !isLoggedIn,
+        },
+      ],
+    },
+    {
+      title: 'Campus',
+      url: '#',
+      items: [
+        {
+          title: 'Campus Map',
+          description: 'Navigate the campus with interactive map',
+          url: isLoggedIn ? '/campus-map' : '/login',
+          locked: !isLoggedIn,
+        },
+        {
+          title: 'Chat',
+          description: 'Connect with students and staff',
+          url: isLoggedIn ? '/chat' : '/login',
+          locked: !isLoggedIn,
+        },
+      ],
+    },
+  ],
+  [isLoggedIn]
+);
 
-  const mobileExtraLinks = useMemo(
-    () => (isLoggedIn ? [{ name: 'Chat', url: '/chat' }] : []),
-    [isLoggedIn]
-  );
+const mobileExtraLinks = useMemo(
+  () => (isLoggedIn ? [{ name: 'Chat', url: '/chat' }] : []),
+  [isLoggedIn]
+);
 
-  const authConfig = useMemo(
-    () =>
-      isLoggedIn
-        ? {
-            login: { text: 'Profile', url: '/profile' },
-            signup: { text: 'Logout', url: '#', onClick: handleLogout },
-          }
-        : {
-            login: { text: 'Log in', url: '/login' },
-            signup: { text: 'Sign up', url: '/signup' },
-          },
-    [isLoggedIn, handleLogout]
-  );
+const authConfig = useMemo(
+  () =>
+    isLoggedIn
+      ? {
+          login: { text: 'Profile', url: '/profile' },
+          signup: { text: 'Logout', url: '#', onClick: handleLogout },
+        }
+      : {
+          login: { text: 'Log in', url: '/login' },
+          signup: { text: 'Sign up', url: '/signup' },
+        },
+  [isLoggedIn, handleLogout]
+);
 
+  const authConfig = isLoggedIn
+    ? {
+        login: { text: 'Profile', url: '/profile' },
+        signup: { text: 'Logout', url: '#', onClick: handleLogout },
+      }
+    : {
+        login: { text: 'Log in', url: '/login' },
+        signup: { text: 'Sign up', url: '/signup' },
+      };
   return (
     <Navbar1
       logo={{

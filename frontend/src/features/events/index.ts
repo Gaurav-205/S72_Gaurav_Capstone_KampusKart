@@ -1,5 +1,5 @@
 export { default } from '../../components/Events';
-export * from './types';
+// Intentionally not re-exporting './types' here to avoid name collisions
 export * from './api';
 export * from './hooks/useEvents';
 export * from './components/EventCard';

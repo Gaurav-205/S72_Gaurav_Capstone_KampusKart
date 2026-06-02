@@ -19,6 +19,7 @@ const News = React.lazy(() => import('./pages/News'));
 const Facilities = React.lazy(() => import('./pages/Facilities'));
 const Chat = React.lazy(() => import('./pages/Chat'));
 const ClubsRecruitment = React.lazy(() => import('./pages/ClubsRecruitment'));
+const AdminUsers = React.lazy(() => import('./pages/AdminUsers'));
 const PrivacyPolicy = React.lazy(() => import('./pages/PrivacyPolicy'));
 const TermsOfService = React.lazy(() => import('./pages/TermsOfService'));
 
@@ -38,14 +39,33 @@ const ProtectedRoute: React.FC<{ children: React.ReactNode }> = ({ children }) =
   return <>{children}</>;
 };
 
+const AdminRoute: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+  const { token, user, loading } = useAuth();
+
+  if (loading) {
+    return <PageLoader />;
+  }
+
+  if (!token) {
+    return <Navigate to="/login" />;
+  }
+
+  if (!user?.isAdmin) {
+    return <Navigate to="/home" />;
+  }
+
+  return <>{children}</>;
+};
+
 // Google Callback component
 const GoogleCallback: React.FC = () => {
   const { handleGoogleCallback } = useAuth();
   const location = useLocation();
   const [done, setDone] = React.useState(false);
+  const search = location.search;
 
   React.useEffect(() => {
-    const params = new URLSearchParams(location.search);
+    const params = new URLSearchParams(search);
     const token = params.get('token');
     if (token) {
       handleGoogleCallback(token)
@@ -54,7 +74,7 @@ const GoogleCallback: React.FC = () => {
     } else {
       setDone(true);
     }
-  }, []);
+  }, [handleGoogleCallback, search]);
 
   if (!done) return null;
   return <Navigate to="/home" />;
@@ -64,12 +84,14 @@ const GoogleCallback: React.FC = () => {
 const AppLayout: React.FC = () => {
   const location = useLocation();
   const hideNavbarRoutes = ['/login', '/signup', '/forgot-password'];
-  const showNavbar = !hideNavbarRoutes.some(route => location.pathname === route || location.pathname.startsWith(`${route}/`));
+  const showNavbar = !hideNavbarRoutes.some(
+    (route) => location.pathname === route || location.pathname.startsWith(`${route}/`)
+  );
 
   React.useEffect(() => {
     const lockScrollRoutes = ['/login', '/signup'];
     const shouldLockScroll = lockScrollRoutes.some(
-      route => location.pathname === route || location.pathname.startsWith(`${route}/`)
+      (route) => location.pathname === route || location.pathname.startsWith(`${route}/`)
     );
 
     document.documentElement.style.overflow = shouldLockScroll ? 'hidden' : '';
@@ -178,6 +200,14 @@ const AppLayout: React.FC = () => {
                 <ProtectedRoute>
                   <ClubsRecruitment />
                 </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/admin/users"
+              element={
+                <AdminRoute>
+                  <AdminUsers />
+                </AdminRoute>
               }
             />
             <Route path="/privacy" element={<PrivacyPolicy />} />

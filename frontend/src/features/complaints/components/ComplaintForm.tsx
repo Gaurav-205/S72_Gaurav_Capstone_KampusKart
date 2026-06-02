@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { FiInfo, FiTag } from 'react-icons/fi';
+import { FiInfo } from 'react-icons/fi';
 import { ImageUpload, ImageFile } from '../../../components/common/ImageUpload';
 import { Complaint } from '../types';
 
@@ -21,15 +21,15 @@ export const ComplaintForm: React.FC<ComplaintFormProps> = ({
   const [formData, setFormData] = useState({
     title: complaint?.title || '',
     description: complaint?.description || '',
-    category: complaint?.category || 'Other' as Complaint['category'],
-    priority: complaint?.priority || 'Medium' as Complaint['priority'],
-    department: complaint?.department || 'Student Services' as Complaint['department'],
-    status: complaint?.status || 'Open' as Complaint['status'],
+    category: complaint?.category || ('Other' as Complaint['category']),
+    priority: complaint?.priority || ('Medium' as Complaint['priority']),
+    department: complaint?.department || ('Student Services' as Complaint['department']),
+    status: complaint?.status || ('Open' as Complaint['status']),
     statusComment: '',
   });
 
   const [images, setImages] = useState<ImageFile[]>(
-    (complaint?.images || []).map(img => ({
+    (complaint?.images || []).map((img) => ({
       previewUrl: img.url,
       public_id: img.public_id,
       url: img.url,
@@ -60,20 +60,25 @@ export const ComplaintForm: React.FC<ComplaintFormProps> = ({
 
   const handleBlur = (name: string, value: string) => {
     const error = validateField(name, value);
-    setFieldErrors(prev => ({ ...prev, [name]: error || '' }));
+    setFieldErrors((prev) => ({ ...prev, [name]: error || '' }));
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     const errors: Record<string, string> = {};
-    
+
     const titleErr = validateField('title', formData.title);
     const descErr = validateField('description', formData.description);
 
     if (titleErr) errors.title = titleErr;
     if (descErr) errors.description = descErr;
 
-    if (isAdmin && complaint && formData.status !== complaint.status && !formData.statusComment.trim()) {
+    if (
+      isAdmin &&
+      complaint &&
+      formData.status !== complaint.status &&
+      !formData.statusComment.trim()
+    ) {
       setFormError('Please add a status update note when changing status.');
       return;
     }
@@ -91,17 +96,17 @@ export const ComplaintForm: React.FC<ComplaintFormProps> = ({
     submitData.append('priority', formData.priority);
     submitData.append('department', formData.department);
     submitData.append('status', formData.status);
-    
+
     if (isAdmin && complaint && formData.status !== complaint.status) {
       submitData.append('statusComment', formData.statusComment.trim());
     }
 
-    images.forEach(img => {
+    images.forEach((img) => {
       if (img.file) submitData.append('images', img.file);
     });
 
     if (complaint) {
-      const keepPublicIds = images.filter(img => img.public_id).map(img => img.public_id);
+      const keepPublicIds = images.filter((img) => img.public_id).map((img) => img.public_id);
       submitData.append('keepImages', JSON.stringify(keepPublicIds));
     }
 
@@ -120,29 +125,33 @@ export const ComplaintForm: React.FC<ComplaintFormProps> = ({
             <input
               type="text"
               value={formData.title}
-              onChange={e => setFormData(prev => ({ ...prev, title: e.target.value }))}
-              onBlur={e => handleBlur('title', e.target.value)}
+              onChange={(e) => setFormData((prev) => ({ ...prev, title: e.target.value }))}
+              onBlur={(e) => handleBlur('title', e.target.value)}
               className={`w-full px-4 py-3 rounded-lg border-2 bg-gray-50 focus:outline-none focus:ring-2 focus:ring-[#00C6A7] transition-all ${
                 fieldErrors.title ? 'border-red-500' : 'border-gray-200'
               }`}
               placeholder="Brief summary of the issue"
             />
-            {fieldErrors.title && <p className="mt-1 text-xs text-red-500 font-medium">{fieldErrors.title}</p>}
+            {fieldErrors.title && (
+              <p className="mt-1 text-xs text-red-500 font-medium">{fieldErrors.title}</p>
+            )}
           </div>
 
           <div>
             <label className="block text-sm font-bold text-gray-700 mb-2">Description *</label>
             <textarea
               value={formData.description}
-              onChange={e => setFormData(prev => ({ ...prev, description: e.target.value }))}
-              onBlur={e => handleBlur('description', e.target.value)}
+              onChange={(e) => setFormData((prev) => ({ ...prev, description: e.target.value }))}
+              onBlur={(e) => handleBlur('description', e.target.value)}
               rows={4}
               className={`w-full px-4 py-3 rounded-lg border-2 bg-gray-50 focus:outline-none focus:ring-2 focus:ring-[#00C6A7] transition-all ${
                 fieldErrors.description ? 'border-red-500' : 'border-gray-200'
               }`}
               placeholder="Describe the problem in detail..."
             />
-            {fieldErrors.description && <p className="mt-1 text-xs text-red-500 font-medium">{fieldErrors.description}</p>}
+            {fieldErrors.description && (
+              <p className="mt-1 text-xs text-red-500 font-medium">{fieldErrors.description}</p>
+            )}
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -150,7 +159,12 @@ export const ComplaintForm: React.FC<ComplaintFormProps> = ({
               <label className="block text-sm font-bold text-gray-700 mb-2">Category</label>
               <select
                 value={formData.category}
-                onChange={e => setFormData(prev => ({ ...prev, category: e.target.value as any }))}
+                onChange={(e) =>
+                  setFormData((prev) => ({
+                    ...prev,
+                    category: e.target.value as Complaint['category'],
+                  }))
+                }
                 className="w-full px-4 py-3 rounded-lg border-2 border-gray-200 bg-gray-50 focus:outline-none focus:ring-2 focus:ring-[#00C6A7]"
               >
                 <option value="Academic">Academic</option>
@@ -165,7 +179,12 @@ export const ComplaintForm: React.FC<ComplaintFormProps> = ({
               <label className="block text-sm font-bold text-gray-700 mb-2">Department</label>
               <select
                 value={formData.department}
-                onChange={e => setFormData(prev => ({ ...prev, department: e.target.value as any }))}
+                onChange={(e) =>
+                  setFormData((prev) => ({
+                    ...prev,
+                    department: e.target.value as Complaint['department'],
+                  }))
+                }
                 className="w-full px-4 py-3 rounded-lg border-2 border-gray-200 bg-gray-50 focus:outline-none focus:ring-2 focus:ring-[#00C6A7]"
               >
                 <option value="Academic Affairs">Academic Affairs</option>
@@ -183,7 +202,12 @@ export const ComplaintForm: React.FC<ComplaintFormProps> = ({
               <label className="block text-sm font-bold text-gray-700 mb-2">Priority</label>
               <select
                 value={formData.priority}
-                onChange={e => setFormData(prev => ({ ...prev, priority: e.target.value as any }))}
+                onChange={(e) =>
+                  setFormData((prev) => ({
+                    ...prev,
+                    priority: e.target.value as Complaint['priority'],
+                  }))
+                }
                 className="w-full px-4 py-3 rounded-lg border-2 border-gray-200 bg-gray-50 focus:outline-none focus:ring-2 focus:ring-[#00C6A7]"
               >
                 <option value="Low">Low</option>
@@ -194,10 +218,17 @@ export const ComplaintForm: React.FC<ComplaintFormProps> = ({
             </div>
             {isAdmin && complaint && (
               <div>
-                <label className="block text-sm font-bold text-gray-700 mb-2">Status (Admin Only)</label>
+                <label className="block text-sm font-bold text-gray-700 mb-2">
+                  Status (Admin Only)
+                </label>
                 <select
                   value={formData.status}
-                  onChange={e => setFormData(prev => ({ ...prev, status: e.target.value as any }))}
+                  onChange={(e) =>
+                    setFormData((prev) => ({
+                      ...prev,
+                      status: e.target.value as Complaint['status'],
+                    }))
+                  }
                   className="w-full px-4 py-3 rounded-lg border-2 border-gray-200 bg-gray-50 focus:outline-none focus:ring-2 focus:ring-[#00C6A7]"
                 >
                   <option value="Open">Open</option>
@@ -216,7 +247,7 @@ export const ComplaintForm: React.FC<ComplaintFormProps> = ({
           <label className="block text-sm font-bold text-blue-700 mb-2">Status Update Note *</label>
           <textarea
             value={formData.statusComment}
-            onChange={e => setFormData(prev => ({ ...prev, statusComment: e.target.value }))}
+            onChange={(e) => setFormData((prev) => ({ ...prev, statusComment: e.target.value }))}
             className="w-full px-4 py-3 rounded-lg border-2 border-blue-200 bg-white focus:outline-none focus:ring-2 focus:ring-blue-400"
             placeholder="Explain why the status is being changed..."
             rows={3}
@@ -226,11 +257,7 @@ export const ComplaintForm: React.FC<ComplaintFormProps> = ({
 
       <div className="border-2 border-gray-200 rounded-lg p-6">
         <h3 className="text-lg font-bold mb-4 text-gray-900">Images</h3>
-        <ImageUpload
-          images={images}
-          setImages={setImages}
-          maxImages={3}
-        />
+        <ImageUpload images={images} onImagesChange={setImages} maxImages={3} />
       </div>
 
       {formError && (
