@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { FiInfo, FiTag, FiCalendar, FiFileText, FiLink, FiUser, FiMail, FiPhone } from 'react-icons/fi';
+import { FiInfo } from 'react-icons/fi';
 import { ImageUpload, ImageFile } from '../../../components/common/ImageUpload';
 import { Club } from '../types';
 
@@ -23,7 +23,7 @@ export const ClubForm: React.FC<ClubFormProps> = ({
     startDate: club?.startDate ? new Date(club.startDate).toISOString().split('T')[0] : '',
     endDate: club?.endDate ? new Date(club.endDate).toISOString().split('T')[0] : '',
     formUrl: club?.formUrl || '',
-    status: club?.status || 'Open' as Club['status'],
+    status: club?.status || ('Open' as Club['status']),
     contactInfo: {
       name: club?.contactInfo?.name || '',
       email: club?.contactInfo?.email || '',
@@ -32,7 +32,9 @@ export const ClubForm: React.FC<ClubFormProps> = ({
   });
 
   const [images, setImages] = useState<ImageFile[]>(
-    club?.image?.url ? [{ url: club.image.url, public_id: club.image.public_id, previewUrl: club.image.url }] : []
+    club?.image?.url
+      ? [{ url: club.image.url, public_id: club.image.public_id, previewUrl: club.image.url }]
+      : []
   );
 
   const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
@@ -42,21 +44,34 @@ export const ClubForm: React.FC<ClubFormProps> = ({
     setFormError(externalError);
   }, [externalError]);
 
-  const validateField = (name: string, value: any): string | null => {
-    if (typeof value === 'string' && !value.trim()) return `${name.charAt(0).toUpperCase() + name.slice(1)} is required`;
+  const validateField = (name: string, value: string): string | null => {
+    if (typeof value === 'string' && !value.trim())
+      return `${name.charAt(0).toUpperCase() + name.slice(1)} is required`;
     return null;
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     const errors: Record<string, string> = {};
-    
-    ['title', 'description', 'clubName', 'startDate', 'endDate', 'formUrl'].forEach(field => {
-      const err = validateField(field, (formData as any)[field]);
+
+    const requiredFields = [
+      'title',
+      'description',
+      'clubName',
+      'startDate',
+      'endDate',
+      'formUrl',
+    ] as const;
+    requiredFields.forEach((field) => {
+      const err = validateField(field, formData[field]);
       if (err) errors[field] = err;
     });
 
-    if (formData.startDate && formData.endDate && new Date(formData.startDate) >= new Date(formData.endDate)) {
+    if (
+      formData.startDate &&
+      formData.endDate &&
+      new Date(formData.startDate) >= new Date(formData.endDate)
+    ) {
       errors.endDate = 'End date must be after start date';
     }
 
@@ -96,26 +111,30 @@ export const ClubForm: React.FC<ClubFormProps> = ({
               <input
                 type="text"
                 value={formData.title}
-                onChange={e => setFormData(prev => ({ ...prev, title: e.target.value }))}
+                onChange={(e) => setFormData((prev) => ({ ...prev, title: e.target.value }))}
                 className={`w-full px-4 py-3 rounded-lg border-2 bg-gray-50 focus:outline-none focus:ring-2 focus:ring-[#00C6A7] transition-all ${
                   fieldErrors.title ? 'border-red-500' : 'border-gray-200'
                 }`}
                 placeholder="e.g. Drama Club 2024 Intake"
               />
-              {fieldErrors.title && <p className="mt-1 text-xs text-red-500 font-medium">{fieldErrors.title}</p>}
+              {fieldErrors.title && (
+                <p className="mt-1 text-xs text-red-500 font-medium">{fieldErrors.title}</p>
+              )}
             </div>
             <div>
               <label className="block text-sm font-bold text-gray-700 mb-2">Club Name *</label>
               <input
                 type="text"
                 value={formData.clubName}
-                onChange={e => setFormData(prev => ({ ...prev, clubName: e.target.value }))}
+                onChange={(e) => setFormData((prev) => ({ ...prev, clubName: e.target.value }))}
                 className={`w-full px-4 py-3 rounded-lg border-2 bg-gray-50 focus:outline-none focus:ring-2 focus:ring-[#00C6A7] transition-all ${
                   fieldErrors.clubName ? 'border-red-500' : 'border-gray-200'
                 }`}
                 placeholder="Which club is recruiting?"
               />
-              {fieldErrors.clubName && <p className="mt-1 text-xs text-red-500 font-medium">{fieldErrors.clubName}</p>}
+              {fieldErrors.clubName && (
+                <p className="mt-1 text-xs text-red-500 font-medium">{fieldErrors.clubName}</p>
+              )}
             </div>
           </div>
 
@@ -125,24 +144,28 @@ export const ClubForm: React.FC<ClubFormProps> = ({
               <input
                 type="date"
                 value={formData.startDate}
-                onChange={e => setFormData(prev => ({ ...prev, startDate: e.target.value }))}
+                onChange={(e) => setFormData((prev) => ({ ...prev, startDate: e.target.value }))}
                 className={`w-full px-4 py-3 rounded-lg border-2 bg-gray-50 focus:outline-none focus:ring-2 focus:ring-[#00C6A7] transition-all ${
                   fieldErrors.startDate ? 'border-red-500' : 'border-gray-200'
                 }`}
               />
-              {fieldErrors.startDate && <p className="mt-1 text-xs text-red-500 font-medium">{fieldErrors.startDate}</p>}
+              {fieldErrors.startDate && (
+                <p className="mt-1 text-xs text-red-500 font-medium">{fieldErrors.startDate}</p>
+              )}
             </div>
             <div>
               <label className="block text-sm font-bold text-gray-700 mb-2">End Date *</label>
               <input
                 type="date"
                 value={formData.endDate}
-                onChange={e => setFormData(prev => ({ ...prev, endDate: e.target.value }))}
+                onChange={(e) => setFormData((prev) => ({ ...prev, endDate: e.target.value }))}
                 className={`w-full px-4 py-3 rounded-lg border-2 bg-gray-50 focus:outline-none focus:ring-2 focus:ring-[#00C6A7] transition-all ${
                   fieldErrors.endDate ? 'border-red-500' : 'border-gray-200'
                 }`}
               />
-              {fieldErrors.endDate && <p className="mt-1 text-xs text-red-500 font-medium">{fieldErrors.endDate}</p>}
+              {fieldErrors.endDate && (
+                <p className="mt-1 text-xs text-red-500 font-medium">{fieldErrors.endDate}</p>
+              )}
             </div>
           </div>
 
@@ -150,14 +173,16 @@ export const ClubForm: React.FC<ClubFormProps> = ({
             <label className="block text-sm font-bold text-gray-700 mb-2">Description *</label>
             <textarea
               value={formData.description}
-              onChange={e => setFormData(prev => ({ ...prev, description: e.target.value }))}
+              onChange={(e) => setFormData((prev) => ({ ...prev, description: e.target.value }))}
               rows={4}
               className={`w-full px-4 py-3 rounded-lg border-2 bg-gray-50 focus:outline-none focus:ring-2 focus:ring-[#00C6A7] transition-all ${
                 fieldErrors.description ? 'border-red-500' : 'border-gray-200'
               }`}
               placeholder="Requirements, process, highlights..."
             />
-            {fieldErrors.description && <p className="mt-1 text-xs text-red-500 font-medium">{fieldErrors.description}</p>}
+            {fieldErrors.description && (
+              <p className="mt-1 text-xs text-red-500 font-medium">{fieldErrors.description}</p>
+            )}
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -166,19 +191,23 @@ export const ClubForm: React.FC<ClubFormProps> = ({
               <input
                 type="url"
                 value={formData.formUrl}
-                onChange={e => setFormData(prev => ({ ...prev, formUrl: e.target.value }))}
+                onChange={(e) => setFormData((prev) => ({ ...prev, formUrl: e.target.value }))}
                 className={`w-full px-4 py-3 rounded-lg border-2 bg-gray-50 focus:outline-none focus:ring-2 focus:ring-[#00C6A7] transition-all ${
                   fieldErrors.formUrl ? 'border-red-500' : 'border-gray-200'
                 }`}
                 placeholder="https://forms.gle/..."
               />
-              {fieldErrors.formUrl && <p className="mt-1 text-xs text-red-500 font-medium">{fieldErrors.formUrl}</p>}
+              {fieldErrors.formUrl && (
+                <p className="mt-1 text-xs text-red-500 font-medium">{fieldErrors.formUrl}</p>
+              )}
             </div>
             <div>
               <label className="block text-sm font-bold text-gray-700 mb-2">Status</label>
               <select
                 value={formData.status}
-                onChange={e => setFormData(prev => ({ ...prev, status: e.target.value as any }))}
+                onChange={(e) =>
+                  setFormData((prev) => ({ ...prev, status: e.target.value as Club['status'] }))
+                }
                 className="w-full px-4 py-3 rounded-lg border-2 border-gray-200 bg-gray-50 focus:outline-none focus:ring-2 focus:ring-[#00C6A7]"
               >
                 <option value="Open">Open</option>
@@ -197,21 +226,36 @@ export const ClubForm: React.FC<ClubFormProps> = ({
           <input
             type="text"
             value={formData.contactInfo.name}
-            onChange={e => setFormData(prev => ({ ...prev, contactInfo: { ...prev.contactInfo, name: e.target.value } }))}
+            onChange={(e) =>
+              setFormData((prev) => ({
+                ...prev,
+                contactInfo: { ...prev.contactInfo, name: e.target.value },
+              }))
+            }
             className="w-full px-4 py-2 border-2 border-gray-200 rounded-lg focus:ring-2 focus:ring-[#00C6A7] outline-none"
             placeholder="Name"
           />
           <input
             type="email"
             value={formData.contactInfo.email}
-            onChange={e => setFormData(prev => ({ ...prev, contactInfo: { ...prev.contactInfo, email: e.target.value } }))}
+            onChange={(e) =>
+              setFormData((prev) => ({
+                ...prev,
+                contactInfo: { ...prev.contactInfo, email: e.target.value },
+              }))
+            }
             className="w-full px-4 py-2 border-2 border-gray-200 rounded-lg focus:ring-2 focus:ring-[#00C6A7] outline-none"
             placeholder="Email"
           />
           <input
             type="tel"
             value={formData.contactInfo.phone}
-            onChange={e => setFormData(prev => ({ ...prev, contactInfo: { ...prev.contactInfo, phone: e.target.value } }))}
+            onChange={(e) =>
+              setFormData((prev) => ({
+                ...prev,
+                contactInfo: { ...prev.contactInfo, phone: e.target.value },
+              }))
+            }
             className="w-full px-4 py-2 border-2 border-gray-200 rounded-lg focus:ring-2 focus:ring-[#00C6A7] outline-none"
             placeholder="Phone"
           />
@@ -220,11 +264,7 @@ export const ClubForm: React.FC<ClubFormProps> = ({
 
       <div className="border-2 border-gray-200 rounded-lg p-6">
         <h3 className="text-lg font-bold mb-4 text-gray-900">Banner Image</h3>
-        <ImageUpload
-          images={images}
-          setImages={setImages}
-          maxImages={1}
-        />
+        <ImageUpload images={images} onImagesChange={setImages} maxImages={3} />
       </div>
 
       {formError && (

@@ -8,19 +8,19 @@ import { socialLinks } from '../utils/socialLinks';
 import { useSearchSuggestions } from '../hooks/useSearchSuggestions';
 
 // Import from the feature directory
-import { 
-  useFacilities, 
-  Facility, 
-  FacilityCard, 
-  FacilityFilters, 
-  FacilityForm, 
+import {
+  useFacilities,
+  FacilityCard,
+  FacilityFilters,
+  FacilityForm,
   FacilityDetail,
-  facilitiesApi
+  facilitiesApi,
 } from '../features/facilities';
+import type { Facility } from '../features/facilities/types';
 
 const Facilities = () => {
   const { token, user } = useAuth();
-  
+
   // Custom hook for state and data fetching
   const {
     facilities,
@@ -45,21 +45,18 @@ const Facilities = () => {
     const suggestions: string[] = [];
     const normalizedQuery = query.toLowerCase();
     if (facility.name?.toLowerCase().includes(normalizedQuery)) suggestions.push(facility.name);
-    if (facility.location?.toLowerCase().includes(normalizedQuery)) suggestions.push(facility.location);
+    if (facility.location?.toLowerCase().includes(normalizedQuery))
+      suggestions.push(facility.location);
     if (facility.type?.toLowerCase().includes(normalizedQuery)) suggestions.push(facility.type);
     return suggestions;
   }, []);
 
-  const {
-    showSuggestions,
-    setShowSuggestions,
-    filteredSuggestions,
-    searchRef,
-  } = useSearchSuggestions<Facility>({
-    searchInput: filters.search,
-    items: facilities,
-    buildSuggestions,
-  });
+  const { showSuggestions, setShowSuggestions, filteredSuggestions, searchRef } =
+    useSearchSuggestions<Facility>({
+      searchInput: filters.search,
+      items: facilities,
+      buildSuggestions,
+    });
 
   // Modal handlers
   const openAddModal = () => {
@@ -83,7 +80,7 @@ const Facilities = () => {
   };
 
   const openDeleteModal = (id: string) => {
-    const facility = facilities.find(f => f._id === id);
+    const facility = facilities.find((f) => f._id === id);
     if (facility) {
       setSelectedFacility(facility);
       setModalType('delete');
@@ -113,8 +110,8 @@ const Facilities = () => {
       }
       refresh();
       closeModal();
-    } catch (err: any) {
-      setFormError(err.message || 'Failed to save facility');
+    } catch (err: unknown) {
+      setFormError(err instanceof Error ? err.message : 'Failed to save facility');
     } finally {
       setIsSubmitting(false);
     }
@@ -138,12 +135,20 @@ const Facilities = () => {
   }, [successMessage]);
 
   if (loading && facilities.length === 0) {
-    return <PageSkeleton contentType="cards" itemCount={6} filterCount={1} showAddButton={user?.isAdmin} />;
+    return (
+      <PageSkeleton
+        contentType="cards"
+        itemCount={6}
+        filterCount={1}
+        showAddButton={user?.isAdmin}
+      />
+    );
   }
 
-  const filteredFacilities = facilities.filter(f => {
-    const matchesSearch = f.name.toLowerCase().includes(filters.search.toLowerCase()) || 
-                         f.description.toLowerCase().includes(filters.search.toLowerCase());
+  const filteredFacilities = facilities.filter((f) => {
+    const matchesSearch =
+      f.name.toLowerCase().includes(filters.search.toLowerCase()) ||
+      f.description.toLowerCase().includes(filters.search.toLowerCase());
     const matchesType = filters.type === 'All' || f.type === filters.type;
     return matchesSearch && matchesType;
   });
@@ -171,8 +176,8 @@ const Facilities = () => {
           suggestions={filteredSuggestions}
           showSuggestions={showSuggestions}
           setShowSuggestions={setShowSuggestions}
-          searchRef={searchRef as any}
-          onSuggestionSelect={(val) => updateFilters({ search: val })}
+          searchRef={searchRef}
+          onSuggestionSelect={(val: string) => updateFilters({ search: val })}
         />
 
         {fetchError && (
@@ -186,7 +191,9 @@ const Facilities = () => {
           {filteredFacilities.length === 0 ? (
             <div className="col-span-full flex flex-col items-center justify-center py-20 text-center">
               <p className="text-xl font-bold text-gray-700">No facilities found</p>
-              <p className="text-gray-400 text-sm mt-2">Try adjusting your filters or search terms.</p>
+              <p className="text-gray-400 text-sm mt-2">
+                Try adjusting your filters or search terms.
+              </p>
             </div>
           ) : (
             filteredFacilities.map((facility) => (
@@ -207,11 +214,16 @@ const Facilities = () => {
           isOpen={isModalOpen}
           onClose={closeModal}
           title={
-            modalType === 'form' ? (selectedFacility ? 'Edit Facility' : 'Add New Facility') :
-            modalType === 'detail' ? 'Facility Details' : 'Confirm Delete'
+            modalType === 'form'
+              ? selectedFacility
+                ? 'Edit Facility'
+                : 'Add New Facility'
+              : modalType === 'detail'
+                ? 'Facility Details'
+                : 'Confirm Delete'
           }
           error={formError}
-          maxWidth={modalType === 'detail' ? '4xl' : '2xl'}
+          size={modalType === 'detail' ? 'xl' : 'md'}
         >
           {modalType === 'form' && (
             <FacilityForm
@@ -221,7 +233,7 @@ const Facilities = () => {
               error={formError}
             />
           )}
-          
+
           {modalType === 'detail' && selectedFacility && (
             <FacilityDetail
               facility={selectedFacility}
@@ -234,10 +246,23 @@ const Facilities = () => {
           {modalType === 'delete' && (
             <div className="p-6 text-center">
               <h3 className="text-xl font-bold mb-4">Delete Facility?</h3>
-              <p className="text-gray-600 mb-8">Are you sure you want to delete "{selectedFacility?.name}"? This action cannot be undone.</p>
+              <p className="text-gray-600 mb-8">
+                Are you sure you want to delete &quot;{selectedFacility?.name}&quot;? This action
+                cannot be undone.
+              </p>
               <div className="flex justify-center gap-4">
-                <button onClick={closeModal} className="px-6 py-2 border-2 border-gray-200 rounded-lg font-bold">Cancel</button>
-                <button onClick={handleDelete} className="px-6 py-2 bg-red-600 text-white rounded-lg font-bold">Delete Facility</button>
+                <button
+                  onClick={closeModal}
+                  className="px-6 py-2 border-2 border-gray-200 rounded-lg font-bold"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={handleDelete}
+                  className="px-6 py-2 bg-red-600 text-white rounded-lg font-bold"
+                >
+                  Delete Facility
+                </button>
               </div>
             </div>
           )}

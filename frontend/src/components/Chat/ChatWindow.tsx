@@ -239,7 +239,15 @@ const ChatWindow = () => {
     socketRef.current.on('new-message', (message: ChatMessage) => {
       if (message) {
         setMessages((prev: ChatMessage[]) => {
-          if (prev.length > 0 && prev[prev.length - 1]?._id === message._id) {
+setMessages((prev: ChatMessage[]) => {
+  const exists = prev.some((msg) => msg._id === message._id);
+
+  if (exists) {
+    return prev;
+  }
+
+  return [...prev, message];
+});
             return prev;
           }
 
@@ -349,12 +357,12 @@ const ChatWindow = () => {
     }
 
     const handleOutsideClick = (event: MouseEvent) => {
-      const target = event.target;
+      const target = event.target as Node | null;
       if (
         emojiPickerRef.current &&
-        !emojiPickerRef.current.contains(target) &&
+        (!target || !emojiPickerRef.current.contains(target)) &&
         emojiToggleButtonRef.current &&
-        !emojiToggleButtonRef.current.contains(target)
+        (!target || !emojiToggleButtonRef.current.contains(target))
       ) {
         setShowEmojiPicker(false);
       }
@@ -373,7 +381,6 @@ const ChatWindow = () => {
       const previousHeight = container?.scrollHeight || 0;
 
       setLoading(true);
-
       const response = await fetch(`${API_BASE}/api/chat/messages?page=${page + 1}`, {
         headers: {
           Authorization: `Bearer ${getToken()}`,
@@ -677,28 +684,35 @@ const ChatWindow = () => {
   );
 
   // Enhanced message bubble
-  const renderMessage = useCallback(
-    (message: ChatMessage) => {
-      if (!message) return null;
-      if (!message.sender) return null;
-      if (!user) return null;
-      // Safely check sender ID
-      const senderId = message.sender?._id || message.sender?.id;
-      const userId = user?._id || user?.id;
-      if (!senderId || !userId) return null;
-      const isOwnMessage = senderId === userId;
-      const hasReactions =
-        message.reactions && Array.isArray(message.reactions) && message.reactions.length > 0;
-      const isRead =
-        message.readBy &&
-        Array.isArray(message.readBy) &&
-        message.readBy.some(
-          (r: ChatReadEntry) => r?.user?._id === userId || r?.user?.id === userId
-        );
-      return (
-        <ListItem
-          key={message._id}
-          alignItems="flex-start"
+const renderMessage = useCallback(
+  (message: ChatMessage) => {
+    if (!message) return null;
+    if (!message.sender) return null;
+    if (!user) return null;
+
+    const senderId = message.sender?._id || message.sender?.id;
+    const userId = user?._id || user?.id;
+
+    if (!senderId || !userId) return null;
+
+    const isOwnMessage = senderId === userId;
+    const hasReactions =
+      message.reactions &&
+      Array.isArray(message.reactions) &&
+      message.reactions.length > 0;
+
+    const isRead =
+      message.readBy &&
+      Array.isArray(message.readBy) &&
+      message.readBy.some(
+        (r: ChatReadEntry) =>
+          r?.user?._id === userId || r?.user?.id === userId
+      );
+
+    return (
+      <ListItem
+        key={message._id}
+        alignItems="flex-start"
           sx={{
             flexDirection: isOwnMessage ? 'row-reverse' : 'row',
             position: 'relative',
@@ -749,6 +763,65 @@ const ChatWindow = () => {
                       fontSize: '0.875rem',
                       padding: '4px 8px',
                     },
+          {editingMessage?._id === message._id ? (
+            <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
+              <TextField
+                value={editText}
+                onChange={(e) => setEditText(e.target.value)}
+                variant="outlined"
+                size="small"
+                multiline
+                maxRows={3}
+                sx={{
+                  '& .MuiOutlinedInput-root': {
+                    fontSize: '0.875rem',
+                    padding: '4px 8px',
+                  },
+                }}
+              />
+              <Box sx={{ display: 'flex', gap: 1, justifyContent: 'flex-end' }}>
+                <Button
+                  size="small"
+                  onClick={() => {
+                    setEditingMessage(null);
+                    setEditText('');
+                  }}
+                  sx={{ fontSize: '0.75rem', px: 1, py: 0.5 }}
+                >
+                  Cancel
+                </Button>
+                <Button
+                  size="small"
+                  variant="contained"
+                  onClick={handleEditMessage}
+                  disabled={!editText.trim() || editText.trim() === message.message}
+                  sx={{ fontSize: '0.75rem', px: 1, py: 0.5 }}
+                >
+                  Save
+                </Button>
+              </Box>
+            </Box>
+          ) : (
+            <Typography
+              variant="body2"
+              sx={{
+                wordBreak: 'break-word',
+                color: '#1f2937',
+                fontSize: '0.9375rem',
+                lineHeight: 1.6,
+                fontWeight: 400,
+              }}
+            >
+              {message.message}
+              {message.edited && (
+                <Typography
+                  component="span"
+                  variant="caption"
+                  sx={{
+                    ml: 1,
+                    color: '#6b7280',
+                    fontSize: '0.75rem',
+                    fontStyle: 'italic',
                   }}
                 />
                 <Box sx={{ display: 'flex', gap: 1, justifyContent: 'flex-end' }}>
@@ -786,14 +859,21 @@ const ChatWindow = () => {
               >
                 {message.message}
                 {message.edited && (
+              ))}
+            </Box>
+          )}
+          {hasReactions && (
+            <Box sx={{ display: 'flex', gap: 0.5, mt: 0.75, flexWrap: 'wrap' }}>
+              {message.reactions?.map((reaction: ChatReaction, index: number) => (
+                <Tooltip key={index} title={reaction?.user?.name || 'Unknown'} placement="top">
                   <Typography
                     component="span"
                     variant="caption"
                     sx={{
-                      ml: 1,
-                      color: '#6b7280',
-                      fontSize: '0.75rem',
-                      fontStyle: 'italic',
+ml: 1,
+color: '#6b7280',
+fontSize: '0.75rem',
+fontStyle: 'italic',
                     }}
                   >
                     (edited)
@@ -1237,7 +1317,7 @@ const ChatWindow = () => {
                 variant="caption"
                 sx={{ color: CHAT_THEME.primary, fontWeight: 700, fontSize: '0.75rem', ml: 1 }}
               >
-                Replying to {replyTo.sender.name}
+                Replying to {replyTo?.sender?.name || 'Unknown'}
               </Typography>
               <IconButton
                 size="small"

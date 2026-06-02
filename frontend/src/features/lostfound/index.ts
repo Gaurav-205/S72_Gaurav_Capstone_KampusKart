@@ -1,5 +1,5 @@
 export { default } from '../../components/LostFound';
-export * from './types';
+// Intentionally not re-exporting './types' here to avoid name collisions
 export * from './api';
 export * from './hooks/useLostFound';
 export * from './components/LostFoundCard';

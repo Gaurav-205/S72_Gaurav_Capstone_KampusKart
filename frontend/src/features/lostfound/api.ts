@@ -7,13 +7,13 @@ export const lostFoundApi = {
     filters: LostFoundFilters,
     itemsPerPage: number
   ): Promise<{ items: LostFoundItem[]; totalItems: number; totalPages: number }> => {
-    const params = new URLSearchParams({
-      page: String(filters.page),
-      limit: String(itemsPerPage),
-      ...(filters.type !== 'all' && { type: filters.type }),
-      ...(filters.resolved !== 'all' && { resolved: filters.resolved === 'resolved' }),
-      ...(filters.search && { search: filters.search }),
-    });
+    const params = new URLSearchParams();
+    params.append('page', String(filters.page));
+    params.append('limit', String(itemsPerPage));
+    if (filters.type && filters.type !== 'all') params.append('type', filters.type);
+    if (filters.resolved && filters.resolved !== 'all')
+      params.append('resolved', String(filters.resolved === 'resolved'));
+    if (filters.search) params.append('search', filters.search);
 
     const response = await fetch(`${API_BASE}/api/lostfound?${params}`, {
       headers: { Authorization: `Bearer ${token}` },
@@ -23,9 +23,12 @@ export const lostFoundApi = {
   },
 
   getSuggestions: async (token: string, query: string): Promise<LostFoundItem[]> => {
-    const response = await fetch(`${API_BASE}/api/lostfound/suggestions?query=${encodeURIComponent(query)}`, {
-      headers: { Authorization: `Bearer ${token}` },
-    });
+    const response = await fetch(
+      `${API_BASE}/api/lostfound/suggestions?query=${encodeURIComponent(query)}`,
+      {
+        headers: { Authorization: `Bearer ${token}` },
+      }
+    );
     if (!response.ok) throw new Error('Failed to fetch suggestions');
     return response.json();
   },

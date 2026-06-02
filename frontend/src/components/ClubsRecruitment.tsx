@@ -8,19 +8,12 @@ import { socialLinks } from '../utils/socialLinks';
 import { useSearchSuggestions } from '../hooks/useSearchSuggestions';
 
 // Import from the feature directory
-import { 
-  useClubs, 
-  Club, 
-  ClubCard, 
-  ClubFilters, 
-  ClubForm, 
-  ClubDetail,
-  clubsApi
-} from '../features/clubs';
+import { useClubs, ClubCard, ClubFilters, ClubForm, ClubDetail, clubsApi } from '../features/clubs';
+import type { Club } from '../features/clubs/types';
 
 const ClubsRecruitment = () => {
   const { token, user } = useAuth();
-  
+
   // Custom hook for state and data fetching
   const {
     clubs,
@@ -49,16 +42,12 @@ const ClubsRecruitment = () => {
     return suggestions;
   }, []);
 
-  const {
-    showSuggestions,
-    setShowSuggestions,
-    filteredSuggestions,
-    searchRef,
-  } = useSearchSuggestions<Club>({
-    searchInput: filters.search,
-    items: clubs,
-    buildSuggestions,
-  });
+  const { showSuggestions, setShowSuggestions, filteredSuggestions, searchRef } =
+    useSearchSuggestions<Club>({
+      searchInput: filters.search,
+      items: clubs,
+      buildSuggestions,
+    });
 
   // Modal handlers
   const openAddModal = () => {
@@ -82,7 +71,7 @@ const ClubsRecruitment = () => {
   };
 
   const openDeleteModal = (id: string) => {
-    const club = clubs.find(c => c._id === id);
+    const club = clubs.find((c) => c._id === id);
     if (club) {
       setSelectedClub(club);
       setModalType('delete');
@@ -112,8 +101,8 @@ const ClubsRecruitment = () => {
       }
       refresh();
       closeModal();
-    } catch (err: any) {
-      setFormError(err.message || 'Failed to save recruitment');
+    } catch (err: unknown) {
+      setFormError(err instanceof Error ? err.message : 'Failed to save recruitment');
     } finally {
       setIsSubmitting(false);
     }
@@ -137,14 +126,22 @@ const ClubsRecruitment = () => {
   }, [successMessage]);
 
   if (loading && clubs.length === 0) {
-    return <PageSkeleton contentType="cards" itemCount={6} filterCount={1} showAddButton={user?.isAdmin} />;
+    return (
+      <PageSkeleton
+        contentType="cards"
+        itemCount={6}
+        filterCount={1}
+        showAddButton={user?.isAdmin}
+      />
+    );
   }
 
-  const filteredClubs = clubs.filter(club =>
-    (filters.status === 'all' || club.status === filters.status) &&
-    (club.title.toLowerCase().includes(filters.search.toLowerCase()) || 
-     club.description.toLowerCase().includes(filters.search.toLowerCase()) ||
-     club.clubName.toLowerCase().includes(filters.search.toLowerCase()))
+  const filteredClubs = clubs.filter(
+    (club) =>
+      (filters.status === 'all' || club.status === filters.status) &&
+      (club.title.toLowerCase().includes(filters.search.toLowerCase()) ||
+        club.description.toLowerCase().includes(filters.search.toLowerCase()) ||
+        club.clubName.toLowerCase().includes(filters.search.toLowerCase()))
   );
 
   return (
@@ -170,8 +167,8 @@ const ClubsRecruitment = () => {
           suggestions={filteredSuggestions}
           showSuggestions={showSuggestions}
           setShowSuggestions={setShowSuggestions}
-          searchRef={searchRef as any}
-          onSuggestionSelect={(val) => updateFilters({ search: val })}
+          searchRef={searchRef}
+          onSuggestionSelect={(val: string) => updateFilters({ search: val })}
         />
 
         {fetchError && (
@@ -185,15 +182,13 @@ const ClubsRecruitment = () => {
           {filteredClubs.length === 0 ? (
             <div className="col-span-full flex flex-col items-center justify-center py-20 text-center">
               <p className="text-xl font-bold text-gray-700">No recruitments found</p>
-              <p className="text-gray-400 text-sm mt-2">Try adjusting your filters or search terms.</p>
+              <p className="text-gray-400 text-sm mt-2">
+                Try adjusting your filters or search terms.
+              </p>
             </div>
           ) : (
             filteredClubs.map((club) => (
-              <ClubCard
-                key={club._id}
-                club={club}
-                onSelect={openDetailModal}
-              />
+              <ClubCard key={club._id} club={club} onSelect={openDetailModal} />
             ))
           )}
         </div>
@@ -203,11 +198,16 @@ const ClubsRecruitment = () => {
           isOpen={isModalOpen}
           onClose={closeModal}
           title={
-            modalType === 'form' ? (selectedClub ? 'Edit Recruitment' : 'Add New Recruitment') :
-            modalType === 'detail' ? 'Recruitment Details' : 'Confirm Delete'
+            modalType === 'form'
+              ? selectedClub
+                ? 'Edit Recruitment'
+                : 'Add New Recruitment'
+              : modalType === 'detail'
+                ? 'Recruitment Details'
+                : 'Confirm Delete'
           }
           error={formError}
-          maxWidth={modalType === 'detail' ? '4xl' : '2xl'}
+          size={modalType === 'detail' ? 'xl' : 'md'}
         >
           {modalType === 'form' && (
             <ClubForm
@@ -217,7 +217,7 @@ const ClubsRecruitment = () => {
               error={formError}
             />
           )}
-          
+
           {modalType === 'detail' && selectedClub && (
             <ClubDetail
               club={selectedClub}
@@ -230,10 +230,23 @@ const ClubsRecruitment = () => {
           {modalType === 'delete' && (
             <div className="p-6 text-center">
               <h3 className="text-xl font-bold mb-4">Delete Recruitment?</h3>
-              <p className="text-gray-600 mb-8">Are you sure you want to delete "{selectedClub?.title}"? This action cannot be undone.</p>
+              <p className="text-gray-600 mb-8">
+                Are you sure you want to delete &quot;{selectedClub?.title}&quot;? This action
+                cannot be undone.
+              </p>
               <div className="flex justify-center gap-4">
-                <button onClick={closeModal} className="px-6 py-2 border-2 border-gray-200 rounded-lg font-bold">Cancel</button>
-                <button onClick={handleDelete} className="px-6 py-2 bg-red-600 text-white rounded-lg font-bold">Delete Recruitment</button>
+                <button
+                  onClick={closeModal}
+                  className="px-6 py-2 border-2 border-gray-200 rounded-lg font-bold"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={handleDelete}
+                  className="px-6 py-2 bg-red-600 text-white rounded-lg font-bold"
+                >
+                  Delete Recruitment
+                </button>
               </div>
             </div>
           )}

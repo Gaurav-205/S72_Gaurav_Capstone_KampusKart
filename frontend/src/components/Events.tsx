@@ -8,28 +8,26 @@ import { socialLinks } from '../utils/socialLinks';
 import { useSearchSuggestions } from '../hooks/useSearchSuggestions';
 
 // Import from the feature directory
-import { 
-  useEvents, 
-  Event, 
-  EventCard, 
-  EventFilters, 
-  EventForm, 
+import {
+  useEvents,
+  EventCard,
+  EventFilters,
+  EventForm,
   EventDetail,
-  eventsApi
+  eventsApi,
 } from '../features/events';
+import type { Event } from '../features/events/types';
 
 const Events = () => {
   const { user, token } = useAuth();
-  
+
   // Custom hook for state and data fetching
   const {
     events,
     loading,
-    error,
-    totalPages,
+    error: fetchError,
     filters,
     updateFilters,
-    setPage,
     refresh,
     removeEvent,
   } = useEvents(token);
@@ -51,16 +49,12 @@ const Events = () => {
     return suggestions;
   }, []);
 
-  const {
-    showSuggestions,
-    setShowSuggestions,
-    filteredSuggestions,
-    searchRef,
-  } = useSearchSuggestions<Event>({
-    searchInput: filters.search,
-    items: events,
-    buildSuggestions,
-  });
+  const { showSuggestions, setShowSuggestions, filteredSuggestions, searchRef } =
+    useSearchSuggestions<Event>({
+      searchInput: filters.search,
+      items: events,
+      buildSuggestions,
+    });
 
   // Modal handlers
   const openAddModal = () => {
@@ -84,7 +78,7 @@ const Events = () => {
   };
 
   const openDeleteModal = (id: string) => {
-    const event = events.find(e => e._id === id);
+    const event = events.find((e) => e._id === id);
     if (event) {
       setSelectedEvent(event);
       setModalType('delete');
@@ -114,8 +108,8 @@ const Events = () => {
       }
       refresh();
       closeModal();
-    } catch (err: any) {
-      setFormError(err.message || 'Failed to save event');
+    } catch (err: unknown) {
+      setFormError(err instanceof Error ? err.message : 'Failed to save event');
     } finally {
       setIsSubmitting(false);
     }
@@ -139,7 +133,14 @@ const Events = () => {
   }, [successMessage]);
 
   if (loading && filters.page === 1) {
-    return <PageSkeleton contentType="cards" itemCount={6} filterCount={1} showAddButton={user?.isAdmin} />;
+    return (
+      <PageSkeleton
+        contentType="cards"
+        itemCount={6}
+        filterCount={1}
+        showAddButton={user?.isAdmin}
+      />
+    );
   }
 
   return (
@@ -165,13 +166,13 @@ const Events = () => {
           suggestions={filteredSuggestions}
           showSuggestions={showSuggestions}
           setShowSuggestions={setShowSuggestions}
-          searchRef={searchRef as any}
-          onSuggestionSelect={(val) => updateFilters({ search: val })}
+          searchRef={searchRef}
+          onSuggestionSelect={(val: string) => updateFilters({ search: val })}
         />
 
-        {error && (
+        {fetchError && (
           <div className="mb-6 p-4 bg-red-50 text-red-700 rounded-lg font-medium border-2 border-red-100">
-            {error}
+            {fetchError}
           </div>
         )}
 
@@ -180,15 +181,13 @@ const Events = () => {
           {events.length === 0 ? (
             <div className="col-span-full flex flex-col items-center justify-center py-20 text-center">
               <p className="text-xl font-bold text-gray-700">No events found</p>
-              <p className="text-gray-400 text-sm mt-2">Try adjusting your filters or search terms.</p>
+              <p className="text-gray-400 text-sm mt-2">
+                Try adjusting your filters or search terms.
+              </p>
             </div>
           ) : (
             events.map((event) => (
-              <EventCard
-                key={event._id}
-                event={event}
-                onClick={openDetailModal}
-              />
+              <EventCard key={event._id} event={event} onClick={openDetailModal} />
             ))
           )}
         </div>
@@ -198,11 +197,16 @@ const Events = () => {
           isOpen={isModalOpen}
           onClose={closeModal}
           title={
-            modalType === 'form' ? (selectedEvent ? 'Edit Event' : 'Add New Event') :
-            modalType === 'detail' ? 'Event Details' : 'Confirm Delete'
+            modalType === 'form'
+              ? selectedEvent
+                ? 'Edit Event'
+                : 'Add New Event'
+              : modalType === 'detail'
+                ? 'Event Details'
+                : 'Confirm Delete'
           }
           error={formError}
-          maxWidth={modalType === 'detail' ? '4xl' : '2xl'}
+          size={modalType === 'detail' ? 'xl' : 'md'}
         >
           {modalType === 'form' && (
             <EventForm
@@ -212,7 +216,7 @@ const Events = () => {
               error={formError}
             />
           )}
-          
+
           {modalType === 'detail' && selectedEvent && (
             <EventDetail
               event={selectedEvent}
@@ -225,10 +229,23 @@ const Events = () => {
           {modalType === 'delete' && (
             <div className="p-6 text-center">
               <h3 className="text-xl font-bold mb-4">Delete Event?</h3>
-              <p className="text-gray-600 mb-8">Are you sure you want to delete "{selectedEvent?.title}"? This action cannot be undone.</p>
+              <p className="text-gray-600 mb-8">
+                Are you sure you want to delete &quot;{selectedEvent?.title}&quot;? This action
+                cannot be undone.
+              </p>
               <div className="flex justify-center gap-4">
-                <button onClick={closeModal} className="px-6 py-2 border-2 border-gray-200 rounded-lg font-bold">Cancel</button>
-                <button onClick={handleDelete} className="px-6 py-2 bg-red-600 text-white rounded-lg font-bold">Delete Event</button>
+                <button
+                  onClick={closeModal}
+                  className="px-6 py-2 border-2 border-gray-200 rounded-lg font-bold"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={handleDelete}
+                  className="px-6 py-2 bg-red-600 text-white rounded-lg font-bold"
+                >
+                  Delete Event
+                </button>
               </div>
             </div>
           )}
