@@ -28,17 +28,54 @@ const authMiddleware = async (req, res, next) => {
     req.user = await User.findById(decoded.userId).select('-password');
 
     if (!req.user) {
-        return res.status(401).json({ message: 'User not found' });
+      return res.status(401).json({ message: 'User not found' });
     }
 
     req.user.isAdmin = isAdminEmail(req.user.email);
 
     next();
-
   } catch (error) {
     console.error('Auth middleware error:', error.message);
     res.status(401).json({ message: 'Not authorized, token failed' });
   }
 };
+const optionalAuthMiddleware = async (req, res, next) => {
+  try {
+    if (!req.headers.authorization || !req.headers.authorization.startsWith('Bearer')) {
+      return next();
+    }
 
-module.exports = authMiddleware; 
+    const token = req.headers.authorization.split(' ')[1];
+
+    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+
+    const user = await User.findById(decoded.userId).select('-password');
+
+    if (user) {
+      user.isAdmin = isAdminEmail(user.email);
+      req.user = user;
+    }
+
+    next();
+  } catch (error) {
+    next();
+  }
+};
+
+const requireAdmin = (message = 'Admin access required') => {
+  return (req, res, next) => {
+    if (!req.user || !req.user.isAdmin) {
+      return res.status(403).json({
+        message,
+      });
+    }
+
+    next();
+  };
+};
+
+module.exports = {
+  authMiddleware,
+  optionalAuthMiddleware,
+  requireAdmin,
+};

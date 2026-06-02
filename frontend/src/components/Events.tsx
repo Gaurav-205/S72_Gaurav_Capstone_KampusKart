@@ -1,4 +1,4 @@
-import { useState, useCallback, useEffect } from 'react';
+import React, { useState, useCallback, useEffect } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import { FeatureModal } from './common/FeatureModal';
 import { SuccessMessage } from './common/SuccessMessage';
@@ -22,14 +22,16 @@ const Events = () => {
   const { user, token } = useAuth();
 
   // Custom hook for state and data fetching
-  const {
-    events,
-    loading,
-    error: fetchError,
-    filters,
+ const {
+  events,
+  loading,
+  error: fetchError,
+  filters,
     updateFilters,
     refresh,
     removeEvent,
+    registerForEvent,
+    withdrawRegistration,
   } = useEvents(token);
 
   // Local UI state
@@ -106,6 +108,7 @@ const Events = () => {
         await eventsApi.createEvent(token, formData);
         setSuccessMessage('Event created successfully!');
       }
+
       refresh();
       closeModal();
     } catch (err: unknown) {
@@ -114,13 +117,29 @@ const Events = () => {
       setIsSubmitting(false);
     }
   };
-
   const handleDelete = async () => {
     if (!selectedEvent) return;
     const success = await removeEvent(selectedEvent._id);
     if (success) {
       setSuccessMessage('Event deleted successfully!');
       closeModal();
+    }
+  };
+  const handleRegister = async (eventId: string) => {
+    const success = await registerForEvent(eventId);
+
+    if (success) {
+      setSuccessMessage('Successfully registered for the event!');
+      refresh();
+    }
+  };
+
+  const handleWithdraw = async (eventId: string) => {
+    const success = await withdrawRegistration(eventId);
+
+    if (success) {
+      setSuccessMessage('Registration withdrawn successfully!');
+      refresh();
     }
   };
 
@@ -166,8 +185,8 @@ const Events = () => {
           suggestions={filteredSuggestions}
           showSuggestions={showSuggestions}
           setShowSuggestions={setShowSuggestions}
-          searchRef={searchRef}
-          onSuggestionSelect={(val: string) => updateFilters({ search: val })}
+searchRef={searchRef}
+onSuggestionSelect={(val: string) => updateFilters({ search: val })}
         />
 
         {fetchError && (
@@ -221,8 +240,11 @@ const Events = () => {
             <EventDetail
               event={selectedEvent}
               isAdmin={user?.isAdmin}
+              currentUserId={user?._id || user?.id}
               onEdit={openEditModal}
               onDelete={openDeleteModal}
+              onRegister={handleRegister}
+              onWithdraw={handleWithdraw}
             />
           )}
 

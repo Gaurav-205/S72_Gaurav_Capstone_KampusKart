@@ -1,7 +1,7 @@
 import React, { useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
-import { Navbar1 } from '../components/ui/shadcnblocks-com-navbar1';
+import { Navbar1 } from './ui/shadcnblocks-com-navbar1';
 
 const KampusKartNavbar: React.FC = () => {
   const { user, token, logout } = useAuth();
@@ -13,7 +13,8 @@ const KampusKartNavbar: React.FC = () => {
     navigate('/login');
   }, [logout, navigate]);
 
-  const menuItems = [
+const menuItems = useMemo(
+  () => [
     {
       title: 'Home',
       url: isLoggedIn ? '/home' : '/',
@@ -78,9 +79,28 @@ const KampusKartNavbar: React.FC = () => {
         },
       ],
     },
-  ];
+  ],
+  [isLoggedIn]
+);
 
-  const mobileExtraLinks = isLoggedIn ? [{ name: 'Chat', url: '/chat' }] : [];
+const mobileExtraLinks = useMemo(
+  () => (isLoggedIn ? [{ name: 'Chat', url: '/chat' }] : []),
+  [isLoggedIn]
+);
+
+const authConfig = useMemo(
+  () =>
+    isLoggedIn
+      ? {
+          login: { text: 'Profile', url: '/profile' },
+          signup: { text: 'Logout', url: '#', onClick: handleLogout },
+        }
+      : {
+          login: { text: 'Log in', url: '/login' },
+          signup: { text: 'Sign up', url: '/signup' },
+        },
+  [isLoggedIn, handleLogout]
+);
 
   const authConfig = isLoggedIn
     ? {

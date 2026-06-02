@@ -49,4 +49,51 @@ export const eventsApi = {
     if (!response.ok) throw new Error('Failed to delete event');
     return response.json();
   },
+  registerForEvent: async (token: string, eventId: string): Promise<{ message: string }> => {
+    const response = await fetch(`${API_BASE}/api/events/${eventId}/register`, {
+      method: 'POST',
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    });
+
+    const data = await response.json();
+
+    if (!response.ok) {
+      throw new Error(data.message || 'Failed to register for event');
+    }
+
+    return data;
+  },
+
+  withdrawRegistration: async (token: string, eventId: string): Promise<{ message: string }> => {
+    const response = await fetch(`${API_BASE}/api/events/${eventId}/register`, {
+      method: 'DELETE',
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    });
+
+    const data = await response.json();
+
+    if (!response.ok) {
+      throw new Error(data.message || 'Failed to withdraw registration');
+    }
+
+    return data;
+  },
+
+  getUserRegistrations: async (token: string): Promise<Event[]> => {
+    const response = await fetch(`${API_BASE}/api/events/user/registrations`, {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    });
+
+    if (!response.ok) {
+      throw new Error('Failed to fetch registrations');
+    }
+
+    return response.json();
+  },
 };
