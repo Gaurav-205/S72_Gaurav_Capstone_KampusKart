@@ -1,6 +1,7 @@
 import React, { ComponentType, useState, useEffect, useRef, useCallback } from 'react';
 import { useAuth } from '../../contexts/AuthContext';
 import { io, Socket } from 'socket.io-client';
+import { FixedSizeList, ListChildComponentProps } from 'react-window';
 import { format } from 'date-fns';
 import {
   Box,
@@ -106,6 +107,28 @@ interface ClientToServerEvents {
 interface EmojiSelectData {
   native?: string;
 }
+interface MessageRowData {
+  messages: ChatMessage[];
+  renderMessage: (message: ChatMessage) => React.ReactNode;
+}
+
+const MessageRow = React.memo(
+  ({ index, style, data }: ListChildComponentProps<MessageRowData>) => {
+    const message = data.messages[index];
+
+    if (!message) return null;
+
+    return <div style={style}>{data.renderMessage(message)}</div>;
+  },
+  (prevProps, nextProps) => {
+    const prevMessage = prevProps.data.messages[prevProps.index];
+    const nextMessage = nextProps.data.messages[nextProps.index];
+
+    return prevMessage === nextMessage && prevProps.style === nextProps.style;
+  }
+);
+
+MessageRow.displayName = 'MessageRow';
 
 const ChatWindow = () => {
   // Helper to get auth token from either storage (sessionStorage used when remember=false)
@@ -140,6 +163,7 @@ const ChatWindow = () => {
   const socketRef = useRef<Socket<ServerToClientEvents, ClientToServerEvents> | null>(null);
   const messagesEndRef = useRef<HTMLDivElement | null>(null);
   const loadMoreRef = useRef<HTMLDivElement | null>(null); // Separate ref for load-more trigger (top of list)
+  const chatContainerRef = useRef<HTMLDivElement | null>(null);
   const typingTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const observerRef = useRef<IntersectionObserver | null>(null);
   const emojiPickerRef = useRef<HTMLDivElement | null>(null);
@@ -215,14 +239,26 @@ const ChatWindow = () => {
     socketRef.current.on('new-message', (message: ChatMessage) => {
       if (message) {
         setMessages((prev: ChatMessage[]) => {
-          // Check if message already exists to prevent duplicates
-          const messageExists = prev.some((msg) => msg._id === message._id);
-          if (messageExists) {
+setMessages((prev: ChatMessage[]) => {
+  const exists = prev.some((msg) => msg._id === message._id);
+
+  if (exists) {
+    return prev;
+  }
+
+  return [...prev, message];
+});
             return prev;
           }
+
+          const exists = prev.some((msg) => msg._id === message._id);
+
+          if (exists) {
+            return prev;
+          }
+
           return [...prev, message];
         });
-        markMessageAsRead(message._id);
       }
     });
 
@@ -341,6 +377,9 @@ const ChatWindow = () => {
   // Load more messages when scrolling up
   const loadMoreMessages = useCallback(async () => {
     try {
+      const container = chatContainerRef.current;
+      const previousHeight = container?.scrollHeight || 0;
+
       setLoading(true);
       const response = await fetch(`${API_BASE}/api/chat/messages?page=${page + 1}`, {
         headers: {
@@ -353,6 +392,12 @@ const ChatWindow = () => {
       const data = await response.json();
       if (data && data.messages && Array.isArray(data.messages)) {
         setMessages((prev) => [...data.messages, ...prev]);
+        requestAnimationFrame(() => {
+          if (!container) return;
+
+          const newHeight = container.scrollHeight;
+          container.scrollTop += newHeight - previousHeight;
+        });
         setPage((prev) => prev + 1);
         if (data.pagination) {
           setHasMore(data.pagination.page < data.pagination.pages);
@@ -367,9 +412,9 @@ const ChatWindow = () => {
 
   useEffect(() => {
     const options = {
-      root: null,
-      rootMargin: '0px',
-      threshold: 1.0,
+      root: chatContainerRef.current,
+      threshold: 0.1,
+      rootMargin: '200px',
     };
 
     const handleObserver = (entries: IntersectionObserverEntry[]) => {
@@ -639,61 +684,85 @@ const ChatWindow = () => {
   );
 
   // Enhanced message bubble
-  const renderMessage = (message: ChatMessage) => {
+const renderMessage = useCallback(
+  (message: ChatMessage) => {
     if (!message) return null;
     if (!message.sender) return null;
     if (!user) return null;
-    // Safely check sender ID
+
     const senderId = message.sender?._id || message.sender?.id;
     const userId = user?._id || user?.id;
+
     if (!senderId || !userId) return null;
+
     const isOwnMessage = senderId === userId;
     const hasReactions =
-      message.reactions && Array.isArray(message.reactions) && message.reactions.length > 0;
+      message.reactions &&
+      Array.isArray(message.reactions) &&
+      message.reactions.length > 0;
+
     const isRead =
       message.readBy &&
       Array.isArray(message.readBy) &&
-      message.readBy.some((r: ChatReadEntry) => r?.user?._id === userId || r?.user?.id === userId);
+      message.readBy.some(
+        (r: ChatReadEntry) =>
+          r?.user?._id === userId || r?.user?.id === userId
+      );
+
     return (
       <ListItem
         key={message._id}
         alignItems="flex-start"
-        sx={{
-          flexDirection: isOwnMessage ? 'row-reverse' : 'row',
-          position: 'relative',
-          mb: 1.5,
-        }}
-        disableGutters
-      >
-        <ListItemAvatar sx={{ minWidth: 48 }}>
-          <Avatar
-            src={
-              typeof message.sender.profilePicture === 'string'
-                ? message.sender.profilePicture
-                : message.sender.profilePicture?.url
-            }
-            alt={message.sender.name}
-            sx={{
-              border: `2px solid ${CHAT_THEME.border}`,
-              width: { xs: 40, sm: 44 },
-              height: { xs: 40, sm: 44 },
-            }}
-          />
-        </ListItemAvatar>
-        <Box
           sx={{
-            bgcolor: isOwnMessage ? '#f0fdf4' : CHAT_THEME.background,
-            border: `2px solid ${CHAT_THEME.border}`,
-            borderRadius: '12px',
-            p: { xs: 1.5, sm: 1.75 },
-            pr: isOwnMessage ? '44px' : undefined,
-            minWidth: 120,
-            maxWidth: { xs: '80%', sm: 420 },
-            ml: isOwnMessage ? 0 : { xs: 0.5, sm: 1 },
-            mr: isOwnMessage ? { xs: 0.5, sm: 1 } : 0,
+            flexDirection: isOwnMessage ? 'row-reverse' : 'row',
             position: 'relative',
+            mb: 1.5,
           }}
+          disableGutters
         >
+          <ListItemAvatar sx={{ minWidth: 48 }}>
+            <Avatar
+              src={
+                typeof message.sender.profilePicture === 'string'
+                  ? message.sender.profilePicture
+                  : message.sender.profilePicture?.url
+              }
+              alt={message.sender.name}
+              sx={{
+                border: `2px solid ${CHAT_THEME.border}`,
+                width: { xs: 40, sm: 44 },
+                height: { xs: 40, sm: 44 },
+              }}
+            />
+          </ListItemAvatar>
+          <Box
+            sx={{
+              bgcolor: isOwnMessage ? '#f0fdf4' : CHAT_THEME.background,
+              border: `2px solid ${CHAT_THEME.border}`,
+              borderRadius: '12px',
+              p: { xs: 1.5, sm: 1.75 },
+              pr: isOwnMessage ? '44px' : undefined,
+              minWidth: 120,
+              maxWidth: { xs: '80%', sm: 420 },
+              ml: isOwnMessage ? 0 : { xs: 0.5, sm: 1 },
+              mr: isOwnMessage ? { xs: 0.5, sm: 1 } : 0,
+              position: 'relative',
+            }}
+          >
+            {editingMessage?._id === message._id ? (
+              <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
+                <TextField
+                  value={editText}
+                  onChange={(e) => setEditText(e.target.value)}
+                  variant="outlined"
+                  size="small"
+                  multiline
+                  maxRows={3}
+                  sx={{
+                    '& .MuiOutlinedInput-root': {
+                      fontSize: '0.875rem',
+                      padding: '4px 8px',
+                    },
           {editingMessage?._id === message._id ? (
             <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
               <TextField
@@ -754,39 +823,42 @@ const ChatWindow = () => {
                     fontSize: '0.75rem',
                     fontStyle: 'italic',
                   }}
-                >
-                  (edited)
-                </Typography>
-              )}
-            </Typography>
-          )}
-          {message.attachments && message.attachments.length > 0 && (
-            <Box sx={{ mt: 1 }}>
-              {message.attachments.map((attachment: ChatAttachment, index: number) => (
-                <Box key={index} sx={{ mb: 1 }}>
-                  {attachment.type === 'image' ? (
-                    <img
-                    src={attachment.url}
-                    alt={attachment.name}
-                    style={{
-                      maxWidth: '180px',
-                      borderRadius: '8px',
-                      cursor: 'pointer'
+                />
+                <Box sx={{ display: 'flex', gap: 1, justifyContent: 'flex-end' }}>
+                  <Button
+                    size="small"
+                    onClick={() => {
+                      setEditingMessage(null);
+                      setEditText('');
                     }}
-                    onClick={() => window.open(attachment.url, '_blank')}
-                  />
-                  ) : (
-                    <Button
-                      variant="outlined"
-                      size="small"
-                      href={attachment.url}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                    >
-                      {attachment.name}
-                    </Button>
-                  )}
+                    sx={{ fontSize: '0.75rem', px: 1, py: 0.5 }}
+                  >
+                    Cancel
+                  </Button>
+                  <Button
+                    size="small"
+                    variant="contained"
+                    onClick={handleEditMessage}
+                    disabled={!editText.trim() || editText.trim() === message.message}
+                    sx={{ fontSize: '0.75rem', px: 1, py: 0.5 }}
+                  >
+                    Save
+                  </Button>
                 </Box>
+              </Box>
+            ) : (
+              <Typography
+                variant="body2"
+                sx={{
+                  wordBreak: 'break-word',
+                  color: '#1f2937',
+                  fontSize: '0.9375rem',
+                  lineHeight: 1.6,
+                  fontWeight: 400,
+                }}
+              >
+                {message.message}
+                {message.edited && (
               ))}
             </Box>
           )}
@@ -798,85 +870,137 @@ const ChatWindow = () => {
                     component="span"
                     variant="caption"
                     sx={{
-                      bgcolor: isOwnMessage ? 'rgba(0, 198, 167, 0.1)' : CHAT_THEME.cardBg,
-                      px: 1,
-                      py: 0.25,
-                      borderRadius: '8px',
-                      fontSize: 16,
-                      border: `2px solid ${CHAT_THEME.border}`,
-                      '&:hover': {
-                        transform: 'scale(1.1)',
-                      },
+ml: 1,
+color: '#6b7280',
+fontSize: '0.75rem',
+fontStyle: 'italic',
                     }}
                   >
-                    {reaction.emoji}
+                    (edited)
                   </Typography>
-                </Tooltip>
-              ))}
-            </Box>
-          )}
-          <Box sx={{ display: 'flex', alignItems: 'center', mt: 1, gap: 1.5 }}>
-            <Typography
-              variant="caption"
-              sx={{
-                color: CHAT_THEME.textSecondary,
-                fontWeight: 500,
-                fontSize: '0.75rem',
-              }}
-            >
-              {message.sender.name}
-            </Typography>
-            <Typography
-              variant="caption"
-              sx={{
-                color: CHAT_THEME.textMuted,
-                fontSize: '0.7rem',
-              }}
-            >
-              {message.timestamp ? format(new Date(message.timestamp), 'HH:mm') : ''}
-            </Typography>
-            {isOwnMessage && (
+                )}
+              </Typography>
+            )}
+            {message.attachments && message.attachments.length > 0 && (
+              <Box sx={{ mt: 1 }}>
+                {message.attachments.map((attachment: ChatAttachment, index: number) => (
+                  <Box key={index} sx={{ mb: 1 }}>
+                    {attachment.type === 'image' ? (
+                      <img
+                        loading="lazy"
+                        src={attachment.url}
+                        alt={attachment.name}
+                        style={{
+                          maxWidth: '180px',
+                          borderRadius: '8px',
+                          cursor: 'pointer',
+                        }}
+                        onClick={() => window.open(attachment.url, '_blank')}
+                      />
+                    ) : (
+                      <Button
+                        variant="outlined"
+                        size="small"
+                        href={attachment.url}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                      >
+                        {attachment.name}
+                      </Button>
+                    )}
+                  </Box>
+                ))}
+              </Box>
+            )}
+            {hasReactions && (
+              <Box sx={{ display: 'flex', gap: 0.5, mt: 0.75, flexWrap: 'wrap' }}>
+                {message.reactions.map((reaction: ChatReaction, index: number) => (
+                  <Tooltip key={index} title={reaction?.user?.name || 'Unknown'} placement="top">
+                    <Typography
+                      component="span"
+                      variant="caption"
+                      sx={{
+                        bgcolor: isOwnMessage ? 'rgba(0, 198, 167, 0.1)' : CHAT_THEME.cardBg,
+                        px: 1,
+                        py: 0.25,
+                        borderRadius: '8px',
+                        fontSize: 16,
+                        border: `2px solid ${CHAT_THEME.border}`,
+                        '&:hover': {
+                          transform: 'scale(1.1)',
+                        },
+                      }}
+                    >
+                      {reaction.emoji}
+                    </Typography>
+                  </Tooltip>
+                ))}
+              </Box>
+            )}
+            <Box sx={{ display: 'flex', alignItems: 'center', mt: 1, gap: 1.5 }}>
               <Typography
                 variant="caption"
                 sx={{
-                  color: isRead ? CHAT_THEME.primaryHover : CHAT_THEME.textMuted,
-                  fontSize: '0.7rem',
-                  fontWeight: isRead ? 600 : 400,
+                  color: CHAT_THEME.textSecondary,
+                  fontWeight: 500,
+                  fontSize: '0.75rem',
                 }}
               >
-                {isRead ? '✓✓ Read' : '✓ Sent'}
+                {message.sender.name}
               </Typography>
+              <Typography
+                variant="caption"
+                sx={{
+                  color: CHAT_THEME.textMuted,
+                  fontSize: '0.7rem',
+                }}
+              >
+                {format(new Date(message.timestamp), 'HH:mm')}
+              </Typography>
+              {isOwnMessage && (
+                <Typography
+                  variant="caption"
+                  sx={{
+                    color: isRead ? CHAT_THEME.primaryHover : CHAT_THEME.textMuted,
+                    fontSize: '0.7rem',
+                    fontWeight: isRead ? 600 : 400,
+                  }}
+                >
+                  {isRead ? '✓✓ Read' : '✓ Sent'}
+                </Typography>
+              )}
+            </Box>
+
+            {isOwnMessage && user && (
+              <IconButton
+                size="small"
+                onClick={(e) => handleMessageActions(message, e)}
+                sx={{
+                  position: 'absolute',
+                  top: 6,
+                  right: 6,
+                  backgroundColor: CHAT_THEME.cardBg,
+                  border: `2px solid ${CHAT_THEME.border}`,
+                  borderRadius: '8px',
+                  width: 28,
+                  height: 28,
+                  opacity: 0.9,
+                  transition: 'opacity 0.2s ease',
+                  '&:hover': {
+                    backgroundColor: CHAT_THEME.cardBg,
+                    opacity: 1,
+                  },
+                }}
+              >
+                <MoreVertIcon fontSize="small" sx={{ color: CHAT_THEME.textSecondary }} />
+              </IconButton>
             )}
           </Box>
-
-          {isOwnMessage && user && (
-            <IconButton
-              size="small"
-              onClick={(e) => handleMessageActions(message, e)}
-              sx={{
-                position: 'absolute',
-                top: 6,
-                right: 6,
-                backgroundColor: CHAT_THEME.cardBg,
-                border: `2px solid ${CHAT_THEME.border}`,
-                borderRadius: '8px',
-                width: 28,
-                height: 28,
-                opacity: 0.9,
-                transition: 'opacity 0.2s ease',
-                '&:hover': {
-                  backgroundColor: CHAT_THEME.cardBg,
-                  opacity: 1,
-                },
-              }}
-            >
-              <MoreVertIcon fontSize="small" sx={{ color: CHAT_THEME.textSecondary }} />
-            </IconButton>
-          )}
-        </Box>
-      </ListItem>
-    );
-  };
+        </ListItem>
+      );
+    },
+    [user, editingMessage, editText, selectedMessage, anchorEl, attachments]
+  );
 
   useEffect(() => {
     if (anchorEl && !document.body.contains(anchorEl)) {
@@ -1113,16 +1237,36 @@ const ChatWindow = () => {
             </Box>
           </Box>
         )}
-        <List sx={{ p: { xs: 2, sm: 3 } }}>
+        <Box
+          ref={chatContainerRef}
+          sx={{
+            height: '100%',
+            width: '100%',
+            pt: 2,
+          }}
+        >
           <div ref={loadMoreRef} />
-          {Array.isArray(messages) &&
-            messages.map((message) =>
-              message && message._id ? (
-                <React.Fragment key={message._id}>{renderMessage(message)}</React.Fragment>
-              ) : null
-            )}
+
+          <FixedSizeList
+            height={
+              chatContainerRef.current?.clientHeight
+                ? chatContainerRef.current.clientHeight
+                : window.innerHeight - 220
+            }
+            width="100%"
+            itemCount={messages.length}
+            itemSize={120}
+            overscanCount={8}
+            itemData={{
+              messages,
+              renderMessage,
+            }}
+          >
+            {MessageRow}
+          </FixedSizeList>
+
           <div ref={messagesEndRef} />
-        </List>
+        </Box>
       </Box>
 
       {/* Sticky Input and Reply Preview */}

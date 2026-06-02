@@ -11,35 +11,38 @@ const ALLOWED_CHAT_MIME_TYPES = [
   'application/pdf',
   'text/plain',
   'application/msword',
-  'application/vnd.openxmlformats-officedocument.wordprocessingml.document'
+  'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
 ];
 
 const listMessages = async ({ page, limit }) => {
-  const { page: parsedPage, limit: parsedLimit, skip } = parsePagination({
+  const {
+    page: parsedPage,
+    limit: parsedLimit,
+    skip,
+  } = parsePagination({
     page,
     limit,
     defaultLimit: 50,
-    maxLimit: 100
+    maxLimit: 100,
   });
 
   const messages = await chatRepository
     .find({ isDeleted: false })
-    .sort({ timestamp: -1 })
+    .sort({ createdAt: -1 })
     .skip(skip)
     .limit(parsedLimit)
     .populate('sender', 'name profilePicture')
     .populate('replyTo')
     .lean();
 
-  const total = await chatRepository.count({ isDeleted: false });
-
+  const total = await chatRepository.countDocuments({ isDeleted: false });
   return {
     messages: messages.reverse(),
     pagination: {
       total,
       page: parsedPage,
-      pages: Math.ceil(total / parsedLimit)
-    }
+      pages: Math.ceil(total / parsedLimit),
+    },
   };
 };
 
@@ -59,12 +62,13 @@ const searchMessages = async ({ query }) => {
 };
 
 const sendMessage = async ({ userId, message, replyTo, files }) => {
-  const attachments = files && files.length > 0
-    ? await mediaService.uploadAttachments(files, {
-        folder: 'chat_attachments',
-        allowedMimeTypes: ALLOWED_CHAT_MIME_TYPES
-      })
-    : [];
+  const attachments =
+    files && files.length > 0
+      ? await mediaService.uploadAttachments(files, {
+          folder: 'chat_attachments',
+          allowedMimeTypes: ALLOWED_CHAT_MIME_TYPES,
+        })
+      : [];
 
   if (!message?.trim() && attachments.length === 0) {
     throw new ServiceError('Message cannot be empty', 400);
@@ -78,7 +82,7 @@ const sendMessage = async ({ userId, message, replyTo, files }) => {
     sender: userId,
     message: message || (attachments.length > 0 ? '📎 Attachment' : ''),
     attachments,
-    replyTo
+    replyTo,
   });
 
   const populatedMessage = await chatRepository
@@ -213,7 +217,7 @@ const cleanupOrphanedAttachments = async () => {
     message: 'Cleanup completed',
     deletedCount,
     errorCount,
-    totalProcessed: deletedMessages.length
+    totalProcessed: deletedMessages.length,
   };
 };
 
@@ -225,5 +229,5 @@ module.exports = {
   deleteMessage,
   addReaction,
   markRead,
-  cleanupOrphanedAttachments
+  cleanupOrphanedAttachments,
 };
