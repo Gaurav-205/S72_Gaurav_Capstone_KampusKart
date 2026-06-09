@@ -80,6 +80,13 @@ const KampusKartNavbar: React.FC = () => {
     },
   ];
 
+  if (isLoggedIn && user?.isAdmin) {
+    menuItems.push({
+      title: 'Admin',
+      url: '/admin/users',
+    });
+  }
+
   const mobileExtraLinks = isLoggedIn ? [{ name: 'Chat', url: '/chat' }] : [];
 
   const authConfig = isLoggedIn
