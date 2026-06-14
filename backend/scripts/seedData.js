@@ -18,11 +18,18 @@ const Chat = require('../models/Chat');
 // Connect to MongoDB
 const connectDB = async () => {
   try {
+    if (mongoose.connection.readyState === 1) {
+      console.log('Using existing MongoDB connection');
+      return;
+    }
     await mongoose.connect(process.env.MONGODB_URI);
     console.log('MongoDB Connected');
   } catch (error) {
     console.error('MongoDB connection error:', error);
-    process.exit(1);
+    if (require.main === module) {
+      process.exit(1);
+    }
+    throw error;
   }
 };
 
@@ -394,7 +401,7 @@ const dummyFacilities = [
     type: 'Service',
     icon: 'FiWifi',
     images: [{
-      url: 'https://images.unsplash.com/photo-1576091160399-112ba8d25d1f?w=800&h=600&fit=crop'
+      url: '/images/medical-facility.png'
     }]
   },
   {
@@ -927,13 +934,22 @@ const seedData = async () => {
     console.log(`- Club Recruitments: ${clubs.length}`);
     console.log(`- Chat Messages: ${chats.length}`);
 
-    process.exit(0);
+    if (require.main === module) {
+      process.exit(0);
+    }
   } catch (error) {
     console.error('Error seeding data:', error);
-    process.exit(1);
+    if (require.main === module) {
+      process.exit(1);
+    }
+    throw error;
   }
 };
 
-// Run the seed function
-seedData();
+// Run the seed function if called directly
+if (require.main === module) {
+  seedData();
+}
+
+module.exports = seedData;
 

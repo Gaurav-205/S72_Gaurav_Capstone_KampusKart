@@ -236,16 +236,58 @@ mongoose
   .connect(process.env.MONGODB_URI)
   .then(() => {
     console.log('Connected to MongoDB');
-    // Start the cron job after successful DB connection
+    
+    // Check if seeding is needed (e.g., if no facilities exist)
+    const Facility = require('./models/Facility');
+    const facilityCount = await Facility.countDocuments();
+    if (facilityCount === 0) {
+      console.log('No facilities found. Seeding dummy data...');
+      try {
+        const seedData = require('./scripts/seedData');
+        await seedData();
+      } catch (seedErr) {
+        console.error('Auto-seeding failed:', seedErr);
+      }
+    }
+
     startDeletionCronJob();
-    // Start keep-alive service to prevent Render from spinning down
     startKeepAlive();
-  })
-  .catch((err) => {
+  } catch (err) {
     console.error('MongoDB connection error:', err);
-    // Exit the process if DB connection fails
-    process.exit(1);
-  });
+    
+    if (process.env.NODE_ENV === 'development') {
+      console.log('Attempting to start MongoDB Memory Server as fallback...');
+      try {
+        const { MongoMemoryServer } = require('mongodb-memory-server');
+        const mongoServer = await MongoMemoryServer.create();
+        const mongoUri = mongoServer.getUri();
+        console.log('MongoDB Memory Server started at:', mongoUri);
+        
+        await mongoose.connect(mongoUri);
+        console.log('Connected to MongoDB Memory Server');
+        
+        // Auto-seed memory DB
+        console.log('Seeding dummy data into Memory Server...');
+        try {
+          const seedData = require('./scripts/seedData');
+          await seedData();
+        } catch (seedErr) {
+          console.error('Auto-seeding memory DB failed:', seedErr);
+        }
+
+        startDeletionCronJob();
+        startKeepAlive();
+      } catch (innerErr) {
+        console.error('Failed to start MongoDB Memory Server:', innerErr);
+        process.exit(1);
+      }
+    } else {
+      process.exit(1);
+    }
+  }
+};
+
+connectDB();
 
 const PORT = process.env.PORT || 5000;
 
