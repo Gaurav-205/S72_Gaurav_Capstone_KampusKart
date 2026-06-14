@@ -2,6 +2,7 @@ import React from 'react';
 import { FiEdit2, FiTrash2, FiUser, FiCalendar, FiTag } from 'react-icons/fi';
 import { Complaint } from '../types';
 import { UI_PATTERNS } from '../../../theme/uiPatterns';
+import { UpvoteButton } from './UpvoteButton'; // Add this import
 
 interface ComplaintCardProps {
   complaint: Complaint;
@@ -23,6 +24,18 @@ export const ComplaintCard: React.FC<ComplaintCardProps> = ({
     complaint.user._id === currentUser.id || 
     currentUser.isAdmin
   );
+
+  // State for vote count - starts from complaint data
+  const [voteCount, setVoteCount] = React.useState(complaint.upvotes || 0);
+
+  //Update voteCount when complaint prop changes (after refresh)
+  React.useEffect(() => {
+    setVoteCount(complaint.upvotes || 0);
+  }, [complaint.upvotes]);
+
+  const handleVoteChange = (id: string, newCount: number) => {
+    setVoteCount(newCount);
+  };
 
   return (
     <div
@@ -78,9 +91,17 @@ export const ComplaintCard: React.FC<ComplaintCardProps> = ({
             <FiUser className="mr-2 flex-shrink-0" />
             <span className="truncate">By {complaint.user?.name || 'Anonymous'}</span>
           </div>
-          <div className="flex items-center text-sm text-gray-500">
-            <FiCalendar className="mr-2 flex-shrink-0" />
-            <span>{new Date(complaint.createdAt).toLocaleDateString()}</span>
+          <div className="flex items-center justify-between text-sm text-gray-500">
+            <div className="flex items-center">
+              <FiCalendar className="mr-2 flex-shrink-0" />
+              <span>{new Date(complaint.createdAt).toLocaleDateString()}</span>
+            </div>
+            {/* Added Upvote Button */}
+            <UpvoteButton 
+              complaintId={complaint._id}
+              initialVoteCount={voteCount}
+              onVoteChange={handleVoteChange}
+            />
           </div>
         </div>
 
