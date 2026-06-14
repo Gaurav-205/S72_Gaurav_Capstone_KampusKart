@@ -6,15 +6,15 @@ const routeModules: Array<[string, () => Promise<unknown>]> = [
   ['Signup', () => import('../../components/Signup')],
   ['ForgotPassword', () => import('../../components/ForgotPassword')],
   ['Home', () => import('../../components/Home')],
-  ['LostFound', () => import('../../components/LostFound')],
+  ['LostFound', () => import('../../features/lostfound')],
   ['Profile', () => import('../../components/Profile')],
-  ['Complaints', () => import('../../components/Complaints')],
-  ['CampusMap', () => import('../../components/CampusMap')],
-  ['Events', () => import('../../components/Events')],
-  ['News', () => import('../../components/News')],
-  ['Facilities', () => import('../../components/Facilities')],
-  ['ClubsRecruitment', () => import('../../components/ClubsRecruitment')],
-  ['ChatWindow', () => import('../../components/Chat/ChatWindow')],
+  ['Complaints', () => import('../../features/complaints')],
+  ['CampusMap', () => import('../../features/map')],
+  ['Events', () => import('../../features/events')],
+  ['News', () => import('../../features/news')],
+  ['Facilities', () => import('../../features/facilities')],
+  ['ClubsRecruitment', () => import('../../features/clubs')],
+  ['ChatWindow', () => import('../../features/chat')],
   ['PrivacyPolicy', () => import('../../components/PrivacyPolicy')],
   ['TermsOfService', () => import('../../components/TermsOfService')],
 ];
@@ -22,11 +22,15 @@ const routeModules: Array<[string, () => Promise<unknown>]> = [
 const IMPORT_TIMEOUT_MS = 20000;
 
 describe('Route module smoke tests', () => {
-  it.each(routeModules)('%s module loads with default export', async (_name, loader) => {
-    const mod = await loader();
-    const defaultExport = (mod as { default?: unknown }).default;
+  it.each(routeModules)(
+    '%s module loads with default export',
+    async (_name, loader) => {
+      const mod = await loader();
+      const defaultExport = (mod as { default?: unknown }).default;
 
-    expect(defaultExport).toBeDefined();
-    expect(typeof defaultExport).toMatch(/function|object/);
-  }, IMPORT_TIMEOUT_MS);
+      expect(defaultExport).toBeDefined();
+      expect(typeof defaultExport).toMatch(/function|object/);
+    },
+    IMPORT_TIMEOUT_MS
+  );
 });

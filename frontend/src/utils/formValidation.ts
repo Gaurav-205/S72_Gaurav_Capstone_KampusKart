@@ -48,7 +48,7 @@ export const validatePhone = (phone: string): ValidationResult => {
   }
   
   // Basic phone validation - allows digits, spaces, dashes, parentheses, and +
-  const phoneRegex = /^[\d\s\-\+\(\)]+$/;
+  const phoneRegex = /^[\d\s+()-]+$/;
   if (!phoneRegex.test(phone) || phone.replace(/\D/g, '').length < 10) {
     return {
       isValid: false,

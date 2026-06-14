@@ -1,5 +1,6 @@
+const path = require('path');
 const dotenv = require('dotenv');
-dotenv.config();
+dotenv.config({ path: path.join(__dirname, '.env') });
 
 // Environment validation
 const requiredEnvVars = [
@@ -11,26 +12,26 @@ const requiredEnvVars = [
   'GOOGLE_CLIENT_ID',
   'GOOGLE_CLIENT_SECRET',
   'EMAIL_USER',
-  'EMAIL_PASS'
+  'EMAIL_PASS',
 ];
 
-const missingEnvVars = requiredEnvVars.filter(varName => !process.env[varName]);
+const missingEnvVars = requiredEnvVars.filter((varName) => !process.env[varName]);
 
 // Only exit in production if critical vars are missing
 // In CI/CD, allow missing vars (they'll be set by the platform)
 const criticalVars = ['JWT_SECRET', 'MONGODB_URI'];
-const missingCritical = criticalVars.filter(varName => !process.env[varName]);
+const missingCritical = criticalVars.filter((varName) => !process.env[varName]);
 
 if (missingCritical.length > 0 && process.env.NODE_ENV === 'production' && !process.env.CI) {
   console.error('❌ Missing critical environment variables:');
-  missingCritical.forEach(varName => console.error(`   - ${varName}`));
+  missingCritical.forEach((varName) => console.error(`   - ${varName}`));
   console.error('Please check your .env file and ensure all required variables are set.');
   process.exit(1);
 }
 
 if (missingEnvVars.length > 0 && !process.env.CI) {
   console.warn('⚠️ Missing optional environment variables:');
-  missingEnvVars.forEach(varName => console.warn(`   - ${varName}`));
+  missingEnvVars.forEach((varName) => console.warn(`   - ${varName}`));
   console.warn('Some features may not work correctly.');
 }
 
@@ -48,7 +49,10 @@ let Sentry;
 if (process.env.SENTRY_DSN) {
   try {
     Sentry = require('@sentry/node');
-    Sentry.init({ dsn: process.env.SENTRY_DSN, environment: process.env.NODE_ENV || 'development' });
+    Sentry.init({
+      dsn: process.env.SENTRY_DSN,
+      environment: process.env.NODE_ENV || 'development',
+    });
   } catch (err) {
     console.warn('Sentry not installed or failed to initialize:', err.message);
     Sentry = null;
@@ -102,10 +106,12 @@ app.use(requestId);
 if (Sentry) app.use(Sentry.Handlers.requestHandler());
 
 // Security middleware
-app.use(helmet({
-  crossOriginResourcePolicy: { policy: 'cross-origin' },
-  contentSecurityPolicy: false // handled separately if needed
-}));
+app.use(
+  helmet({
+    crossOriginResourcePolicy: { policy: 'cross-origin' },
+    contentSecurityPolicy: false, // handled separately if needed
+  })
+);
 app.use(mongoSanitize()); // prevent NoSQL injection
 app.use(hpp()); // prevent HTTP parameter pollution
 
@@ -114,13 +120,15 @@ app.use(hpp()); // prevent HTTP parameter pollution
 const getAllowedOrigins = () => {
   const base = ['http://localhost:3000', 'http://localhost:5000', 'http://localhost:5173'];
   const extra = process.env.ALLOWED_ORIGINS
-    ? process.env.ALLOWED_ORIGINS.split(',').map(o => o.trim()).filter(Boolean)
+    ? process.env.ALLOWED_ORIGINS.split(',')
+        .map((o) => o.trim())
+        .filter(Boolean)
     : [];
   return [...base, ...extra];
 };
 
 const corsOptions = {
-  origin: function(origin, callback) {
+  origin: function (origin, callback) {
     const allowedOrigins = getAllowedOrigins();
     // Allow requests with no origin (like mobile apps or curl requests)
     if (!origin) return callback(null, true);
@@ -132,7 +140,7 @@ const corsOptions = {
   },
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS', 'PATCH'],
-  allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With', 'Accept', 'Origin']
+  allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With', 'Accept', 'Origin'],
 };
 
 app.use(cors(corsOptions));
@@ -157,14 +165,14 @@ app.use('/api/ai', aiRoutes);
 // Health check endpoint (used by keep-alive and monitoring services)
 app.get('/api/health', (req, res) => {
   const isKeepAlive = req.headers['x-keep-alive'] === 'true';
-  const response = { 
-    status: 'ok', 
+  const response = {
+    status: 'ok',
     message: 'Server is running',
     timestamp: new Date().toISOString(),
     uptime: process.uptime(),
-    environment: process.env.NODE_ENV || 'development'
+    environment: process.env.NODE_ENV || 'development',
   };
-  
+
   // Include keep-alive stats if this is a keep-alive ping
   if (isKeepAlive) {
     try {
@@ -174,17 +182,17 @@ app.get('/api/health', (req, res) => {
       // Keep-alive not initialized yet
     }
   }
-  
+
   res.status(200).json(response);
 });
 
 // Server startup status endpoint
 app.get('/api/server-status', (req, res) => {
-  res.status(200).json({ 
-    status: 'ready', 
+  res.status(200).json({
+    status: 'ready',
     message: 'Server is ready to handle requests',
     timestamp: new Date().toISOString(),
-    uptime: process.uptime()
+    uptime: process.uptime(),
   });
 });
 
@@ -198,7 +206,7 @@ app.use((err, req, res, _next) => {
     method: req.method,
     userAgent: req.get('User-Agent'),
     ip: req.ip,
-    requestId: req.requestId
+    requestId: req.requestId,
   });
 
   // Don't expose internal errors in production
@@ -207,7 +215,7 @@ app.use((err, req, res, _next) => {
   res.status(err.status || 500).json({
     message: err.message || 'Internal server error',
     ...(isDevelopment && { stack: err.stack }),
-    ...(isDevelopment && { error: err })
+    ...(isDevelopment && { error: err }),
   });
 });
 
@@ -219,12 +227,13 @@ if (Sentry) {
 // 404 handler
 app.use((req, res) => {
   res.status(404).json({
-    message: `Route not found: ${req.method} ${req.originalUrl}`
+    message: `Route not found: ${req.method} ${req.originalUrl}`,
   });
 });
 
 // MongoDB Connection
-mongoose.connect(process.env.MONGODB_URI)
+mongoose
+  .connect(process.env.MONGODB_URI)
   .then(() => {
     console.log('Connected to MongoDB');
     // Start the cron job after successful DB connection
@@ -246,18 +255,19 @@ const server = http.createServer(app);
 const io = new Server(server, {
   pingTimeout: 60000,
   cors: {
-    origin: function(origin, callback) {
+    origin: function (origin, callback) {
       const allowedOrigins = getAllowedOrigins();
       if (!origin) return callback(null, true);
       if (allowedOrigins.indexOf(origin) === -1) {
-        const msg = 'The CORS policy for this site does not allow access from the specified Origin.';
+        const msg =
+          'The CORS policy for this site does not allow access from the specified Origin.';
         return callback(new Error(msg), false);
       }
       return callback(null, true);
     },
     credentials: true,
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS', 'PATCH'],
-    allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With', 'Accept', 'Origin']
+    allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With', 'Accept', 'Origin'],
   },
   transports: ['websocket', 'polling'],
   maxHttpBufferSize: 1e6, // 1MB
@@ -326,17 +336,17 @@ io.on('connection', (socket) => {
 
       onlineUsers.set(socket.id, userData);
       socket.join('global-chat');
-      
+
       // Send online users list to all clients
       io.emit('online-users', Array.from(onlineUsers.values()));
-      
+
       // Send last 50 messages to the new user
       const messages = await Chat.find({ isDeleted: false })
         .sort({ timestamp: -1 })
         .limit(50)
         .populate('sender', 'name profilePicture')
         .lean();
-      
+
       socket.emit('previous-messages', messages.reverse());
     } catch (error) {
       console.error('Error in socket join handler:', error);
@@ -355,15 +365,15 @@ io.on('connection', (socket) => {
       // Always use the authenticated socket.userId, never trust client-provided senderId
       const chatMessage = new Chat({
         sender: socket.userId,
-        message: messageData.message
+        message: messageData.message,
       });
-      
+
       await chatMessage.save();
-      
+
       const populatedMessage = await Chat.findById(chatMessage._id)
         .populate('sender', 'name profilePicture')
         .lean();
-      
+
       // Emit to all clients except sender to prevent duplicates
       socket.to('global-chat').emit('new-message', populatedMessage);
     } catch (error) {
@@ -432,4 +442,4 @@ process.on('uncaughtException', (error) => {
   setTimeout(() => {
     process.exit(1);
   }, 1000);
-}); 
+});

@@ -1,5 +1,5 @@
-export { default } from '../../components/Facilities';
-export * from './types';
+export { default } from './components/Facilities';
+// Intentionally not re-exporting './types' here to avoid name collisions
 export * from './api';
 export * from './hooks/useFacilities';
 export * from './components/FacilityCard';

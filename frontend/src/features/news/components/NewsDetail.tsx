@@ -9,12 +9,7 @@ interface NewsDetailProps {
   onDelete: (id: string) => void;
 }
 
-export const NewsDetail: React.FC<NewsDetailProps> = ({
-  news,
-  isAdmin,
-  onEdit,
-  onDelete,
-}) => {
+export const NewsDetail: React.FC<NewsDetailProps> = ({ news, isAdmin, onEdit, onDelete }) => {
   const [zoomedImage, setZoomedImage] = useState<string | null>(null);
 
   return (
@@ -23,17 +18,17 @@ export const NewsDetail: React.FC<NewsDetailProps> = ({
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         {news.images && news.images.length > 0 ? (
           news.images.map((img, idx) => (
-            <div 
-              key={idx} 
+            <div
+              key={idx}
               className={`relative overflow-hidden rounded-xl border-2 border-gray-100 cursor-zoom-in group ${
                 news.images?.length === 1 ? 'md:col-span-2 aspect-video' : 'aspect-square'
               }`}
-              onClick={() => setZoomedImage(img.url)}
+              onClick={() => setZoomedImage(img.url ?? null)}
             >
-              <img 
-                src={img.url} 
-                alt={`${news.title} - ${idx + 1}`} 
-                className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110" 
+              <img
+                src={img.url}
+                alt={`${news.title} - ${idx + 1}`}
+                className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
               />
             </div>
           ))
@@ -53,7 +48,8 @@ export const NewsDetail: React.FC<NewsDetailProps> = ({
               <FiTag /> {news.category}
             </span>
             <span className="px-4 py-1.5 rounded-full bg-blue-50 text-blue-600 text-xs font-bold uppercase tracking-wider border border-blue-100 flex items-center gap-2">
-              <FiCalendar /> {new Date(news.date).toLocaleDateString('en-US', { dateStyle: 'long' })}
+              <FiCalendar />{' '}
+              {new Date(news.date).toLocaleDateString('en-US', { dateStyle: 'long' })}
             </span>
           </div>
           <h2 className="text-4xl font-extrabold text-gray-900 leading-tight mb-2">{news.title}</h2>
@@ -86,7 +82,7 @@ export const NewsDetail: React.FC<NewsDetailProps> = ({
 
       {/* Image Zoom Modal */}
       {zoomedImage && (
-        <div 
+        <div
           className="fixed inset-0 z-[100] flex items-center justify-center bg-black/90 p-4 cursor-zoom-out"
           onClick={() => setZoomedImage(null)}
         >

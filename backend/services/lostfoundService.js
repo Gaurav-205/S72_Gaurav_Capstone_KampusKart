@@ -71,11 +71,12 @@ const getSuggestions = async ({ query }) => {
   }));
 };
 
-const listItems = async ({ type, resolved, search, page, limit }) => {
+const listItems = async ({ type, category, resolved, search, page, limit }) => {
   const filter = { isDeleted: { $ne: true } };
+  const itemType = type || category;
 
-  if (type) {
-    filter.type = type;
+  if (itemType && itemType !== 'all' && itemType !== 'All') {
+    filter.type = itemType;
   }
   if (resolved !== undefined) {
     filter.resolved = resolved === 'true' || resolved === true;
@@ -84,7 +85,8 @@ const listItems = async ({ type, resolved, search, page, limit }) => {
     const searchRegex = new RegExp(escapeRegex(search), 'i');
     filter.$or = [
       { title: searchRegex },
-      { description: searchRegex }
+      { description: searchRegex },
+      { location: searchRegex }
     ];
   }
 

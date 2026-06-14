@@ -1,7 +1,7 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { render, screen, waitFor } from '@testing-library/react';
 import { MemoryRouter } from 'react-router-dom';
-import LostFound from '../../components/LostFound';
+import LostFound from '../../features/lostfound';
 
 vi.mock('../../contexts/AuthContext', () => ({
   useAuth: () => ({
@@ -22,11 +22,14 @@ vi.mock('../../config', () => ({
 
 describe('LostFound page smoke test', () => {
   beforeEach(() => {
-    vi.stubGlobal('fetch', vi.fn(async () => ({
-      ok: true,
-      json: async () => ({ items: [], totalPages: 1 }),
-      statusText: 'OK',
-    })));
+    vi.stubGlobal(
+      'fetch',
+      vi.fn(async () => ({
+        ok: true,
+        json: async () => ({ items: [], totalPages: 1 }),
+        statusText: 'OK',
+      }))
+    );
 
     class MockIntersectionObserver {
       observe() {}
@@ -34,7 +37,10 @@ describe('LostFound page smoke test', () => {
       unobserve() {}
     }
 
-    vi.stubGlobal('IntersectionObserver', MockIntersectionObserver as unknown as typeof IntersectionObserver);
+    vi.stubGlobal(
+      'IntersectionObserver',
+      MockIntersectionObserver as unknown as typeof IntersectionObserver
+    );
   });
 
   it('renders without crashing and shows page heading', async () => {

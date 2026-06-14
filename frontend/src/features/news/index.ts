@@ -1,5 +1,5 @@
-export { default } from '../../components/News';
-export * from './types';
+export { default } from './components/News';
+// Intentionally not re-exporting './types' here to avoid name collisions
 export * from './api';
 export * from './hooks/useNews';
 export * from './components/NewsCard';

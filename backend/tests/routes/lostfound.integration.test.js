@@ -1,13 +1,13 @@
 const request = require('supertest');
 const express = require('express');
 const jwt = require('jsonwebtoken');
-const mongoose = require('mongoose');
+const _mongoose = require('mongoose');
 // Will require routes after mocking auth middleware
 const LostFoundItem = require('../../models/LostFoundItem');
 
 jest.mock('../../models/LostFoundItem');
 jest.mock('../../models/User');
-const User = require('../../models/User');
+const _User = require('../../models/User');
 
 describe('Lost & Found integration', () => {
   let app;

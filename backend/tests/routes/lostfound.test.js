@@ -104,6 +104,46 @@ describe('Lost & Found CRUD Operations', () => {
       expect(response.body.items).toHaveLength(1);
       expect(response.body.items[0].type).toBe('lost');
     });
+
+    test('should combine category alias with keyword search', async () => {
+      await LostFoundItem.create([
+        {
+          user: testUser._id,
+          type: 'lost',
+          title: 'Lost keys',
+          description: 'Black keychain',
+          location: 'Library',
+          date: '2024-01-01',
+          contact: 'test@example.com'
+        },
+        {
+          user: testUser._id,
+          type: 'found',
+          title: 'Found keys',
+          description: 'Silver keychain',
+          location: 'Library',
+          date: '2024-01-02',
+          contact: 'test@example.com'
+        },
+        {
+          user: testUser._id,
+          type: 'lost',
+          title: 'Lost notebook',
+          description: 'Blue notebook',
+          location: 'Cafeteria',
+          date: '2024-01-03',
+          contact: 'test@example.com'
+        }
+      ]);
+
+      const response = await request(app)
+        .get('/api/lostfound?category=lost&search=keys')
+        .expect(200);
+
+      expect(response.body.items).toHaveLength(1);
+      expect(response.body.items[0].title).toBe('Lost keys');
+      expect(response.body.items[0].type).toBe('lost');
+    });
   });
 
   describe('READ ONE - GET /api/lostfound/:id', () => {

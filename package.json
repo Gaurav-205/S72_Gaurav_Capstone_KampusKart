@@ -1,0 +1,38 @@
+{
+  "name": "kampuskart-monorepo",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Root workspace orchestrator for KampusKart (frontend + backend)",
+  "packageManager": "npm@9",
+  "engines": {
+    "node": ">=20.19.0"
+  },
+  "workspaces": [
+    "frontend",
+    "backend"
+  ],
+  "scripts": {
+    "bootstrap": "npm install --workspaces",
+    "dev": "concurrently \"npm --workspace backend run dev\" \"npm --workspace frontend run dev\"",
+    "build": "npm run build --workspaces",
+    "build:verify": "npm --workspace frontend run build:verify",
+    "start": "npm --workspace backend start",
+    "lint": "npm run lint --workspaces",
+    "test": "npm run test --workspaces",
+    "check": "npm run lint && npm run test",
+    "typecheck": "npm run typecheck --workspaces",
+    "prepare": "node scripts/prepare-husky.js",
+    "format": "prettier --write \"**/*.{js,jsx,ts,tsx,json,md}\"",
+    "format:check": "prettier --check \"**/*.{js,jsx,ts,tsx,json,md}\"",
+    "mongo:up": "docker compose up -d",
+    "mongo:down": "docker compose down",
+    "mongo:logs": "docker compose logs -f mongo"
+  },
+  "devDependencies": {
+    "concurrently": "^8.2.0",
+    "husky": "^8.0.0",
+    "jsdom": "^29.1.1",
+    "lint-staged": "^14.0.0",
+    "prettier": "^3.1.0"
+  }
+}

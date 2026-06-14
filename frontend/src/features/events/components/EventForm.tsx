@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { FiInfo, FiCalendar, FiMapPin, FiClock, FiUser, FiMail, FiPhone, FiTag, FiFileText } from 'react-icons/fi';
+import { FiInfo, FiMapPin, FiTag, FiMail } from 'react-icons/fi';
 import { ImageUpload, ImageFile } from '../../../components/common/ImageUpload';
 import { Event } from '../types';
 import { validateEmail, validatePhone, validateUrl } from '../../../utils/formValidation';
@@ -22,7 +22,7 @@ export const EventForm: React.FC<EventFormProps> = ({
     description: event?.description || '',
     date: event?.date ? new Date(event.date).toISOString().split('T')[0] : '',
     location: event?.location || '',
-    status: event?.status || 'Upcoming' as Event['status'],
+    status: event?.status || ('Upcoming' as Event['status']),
     registerUrl: event?.registerUrl || '',
     operatingHours: event?.operatingHours || '',
     contactInfo: {
@@ -35,7 +35,11 @@ export const EventForm: React.FC<EventFormProps> = ({
       floor: event?.mapLocation?.floor || '',
       room: event?.mapLocation?.room || '',
     },
-    images: event?.image?.url ? [{ url: event.image.url, public_id: event.image.public_id, previewUrl: event.image.url }] as ImageFile[] : [] as ImageFile[],
+    images: event?.image?.url
+      ? ([
+          { url: event.image.url, public_id: event.image.public_id, previewUrl: event.image.url },
+        ] as ImageFile[])
+      : ([] as ImageFile[]),
   });
 
   const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
@@ -77,13 +81,13 @@ export const EventForm: React.FC<EventFormProps> = ({
 
   const handleBlur = (name: string, value: string) => {
     const error = validateField(name, value);
-    setFieldErrors(prev => ({ ...prev, [name]: error || '' }));
+    setFieldErrors((prev) => ({ ...prev, [name]: error || '' }));
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     const errors: Record<string, string> = {};
-    
+
     const titleErr = validateField('title', formData.title);
     const descErr = validateField('description', formData.description);
     const locErr = validateField('location', formData.location);
@@ -139,29 +143,33 @@ export const EventForm: React.FC<EventFormProps> = ({
             <input
               type="text"
               value={formData.title}
-              onChange={e => setFormData(prev => ({ ...prev, title: e.target.value }))}
-              onBlur={e => handleBlur('title', e.target.value)}
+              onChange={(e) => setFormData((prev) => ({ ...prev, title: e.target.value }))}
+              onBlur={(e) => handleBlur('title', e.target.value)}
               className={`w-full px-4 py-3 rounded-lg border-2 bg-gray-50 focus:outline-none focus:ring-2 focus:ring-[#00C6A7] transition-all ${
                 fieldErrors.title ? 'border-red-500' : 'border-gray-200'
               }`}
               placeholder="Enter event name"
             />
-            {fieldErrors.title && <p className="mt-1 text-xs text-red-500 font-medium">{fieldErrors.title}</p>}
+            {fieldErrors.title && (
+              <p className="mt-1 text-xs text-red-500 font-medium">{fieldErrors.title}</p>
+            )}
           </div>
 
           <div>
             <label className="block text-sm font-bold text-gray-700 mb-2">Description *</label>
             <textarea
               value={formData.description}
-              onChange={e => setFormData(prev => ({ ...prev, description: e.target.value }))}
-              onBlur={e => handleBlur('description', e.target.value)}
+              onChange={(e) => setFormData((prev) => ({ ...prev, description: e.target.value }))}
+              onBlur={(e) => handleBlur('description', e.target.value)}
               rows={4}
               className={`w-full px-4 py-3 rounded-lg border-2 bg-gray-50 focus:outline-none focus:ring-2 focus:ring-[#00C6A7] transition-all ${
                 fieldErrors.description ? 'border-red-500' : 'border-gray-200'
               }`}
               placeholder="Tell us about the event..."
             />
-            {fieldErrors.description && <p className="mt-1 text-xs text-red-500 font-medium">{fieldErrors.description}</p>}
+            {fieldErrors.description && (
+              <p className="mt-1 text-xs text-red-500 font-medium">{fieldErrors.description}</p>
+            )}
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -170,19 +178,23 @@ export const EventForm: React.FC<EventFormProps> = ({
               <input
                 type="date"
                 value={formData.date}
-                onChange={e => setFormData(prev => ({ ...prev, date: e.target.value }))}
-                onBlur={e => handleBlur('date', e.target.value)}
+                onChange={(e) => setFormData((prev) => ({ ...prev, date: e.target.value }))}
+                onBlur={(e) => handleBlur('date', e.target.value)}
                 className={`w-full px-4 py-3 rounded-lg border-2 bg-gray-50 focus:outline-none focus:ring-2 focus:ring-[#00C6A7] transition-all ${
                   fieldErrors.date ? 'border-red-500' : 'border-gray-200'
                 }`}
               />
-              {fieldErrors.date && <p className="mt-1 text-xs text-red-500 font-medium">{fieldErrors.date}</p>}
+              {fieldErrors.date && (
+                <p className="mt-1 text-xs text-red-500 font-medium">{fieldErrors.date}</p>
+              )}
             </div>
             <div>
               <label className="block text-sm font-bold text-gray-700 mb-2">Status</label>
               <select
                 value={formData.status}
-                onChange={e => setFormData(prev => ({ ...prev, status: e.target.value as any }))}
+                onChange={(e) =>
+                  setFormData((prev) => ({ ...prev, status: e.target.value as Event['status'] }))
+                }
                 className="w-full px-4 py-3 rounded-lg border-2 border-gray-200 bg-gray-50 focus:outline-none focus:ring-2 focus:ring-[#00C6A7] transition-all"
               >
                 <option value="Upcoming">Upcoming</option>
@@ -202,18 +214,22 @@ export const EventForm: React.FC<EventFormProps> = ({
         </h3>
         <div className="space-y-6">
           <div>
-            <label className="block text-sm font-bold text-gray-700 mb-2">Venue Address/Location *</label>
+            <label className="block text-sm font-bold text-gray-700 mb-2">
+              Venue Address/Location *
+            </label>
             <input
               type="text"
               value={formData.location}
-              onChange={e => setFormData(prev => ({ ...prev, location: e.target.value }))}
-              onBlur={e => handleBlur('location', e.target.value)}
+              onChange={(e) => setFormData((prev) => ({ ...prev, location: e.target.value }))}
+              onBlur={(e) => handleBlur('location', e.target.value)}
               className={`w-full px-4 py-3 rounded-lg border-2 bg-gray-50 focus:outline-none focus:ring-2 focus:ring-[#00C6A7] transition-all ${
                 fieldErrors.location ? 'border-red-500' : 'border-gray-200'
               }`}
               placeholder="Where is the event?"
             />
-            {fieldErrors.location && <p className="mt-1 text-xs text-red-500 font-medium">{fieldErrors.location}</p>}
+            {fieldErrors.location && (
+              <p className="mt-1 text-xs text-red-500 font-medium">{fieldErrors.location}</p>
+            )}
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
@@ -222,7 +238,12 @@ export const EventForm: React.FC<EventFormProps> = ({
               <input
                 type="text"
                 value={formData.mapLocation.building}
-                onChange={e => setFormData(prev => ({ ...prev, mapLocation: { ...prev.mapLocation, building: e.target.value } }))}
+                onChange={(e) =>
+                  setFormData((prev) => ({
+                    ...prev,
+                    mapLocation: { ...prev.mapLocation, building: e.target.value },
+                  }))
+                }
                 className="w-full px-4 py-3 rounded-lg border-2 border-gray-200 bg-gray-50 focus:outline-none focus:ring-2 focus:ring-[#00C6A7]"
                 placeholder="e.g. Block A"
               />
@@ -232,7 +253,12 @@ export const EventForm: React.FC<EventFormProps> = ({
               <input
                 type="text"
                 value={formData.mapLocation.floor}
-                onChange={e => setFormData(prev => ({ ...prev, mapLocation: { ...prev.mapLocation, floor: e.target.value } }))}
+                onChange={(e) =>
+                  setFormData((prev) => ({
+                    ...prev,
+                    mapLocation: { ...prev.mapLocation, floor: e.target.value },
+                  }))
+                }
                 className="w-full px-4 py-3 rounded-lg border-2 border-gray-200 bg-gray-50 focus:outline-none focus:ring-2 focus:ring-[#00C6A7]"
                 placeholder="e.g. 2nd"
               />
@@ -242,7 +268,12 @@ export const EventForm: React.FC<EventFormProps> = ({
               <input
                 type="text"
                 value={formData.mapLocation.room}
-                onChange={e => setFormData(prev => ({ ...prev, mapLocation: { ...prev.mapLocation, room: e.target.value } }))}
+                onChange={(e) =>
+                  setFormData((prev) => ({
+                    ...prev,
+                    mapLocation: { ...prev.mapLocation, room: e.target.value },
+                  }))
+                }
                 className="w-full px-4 py-3 rounded-lg border-2 border-gray-200 bg-gray-50 focus:outline-none focus:ring-2 focus:ring-[#00C6A7]"
                 placeholder="e.g. Auditorium"
               />
@@ -254,7 +285,7 @@ export const EventForm: React.FC<EventFormProps> = ({
             <input
               type="text"
               value={formData.operatingHours}
-              onChange={e => setFormData(prev => ({ ...prev, operatingHours: e.target.value }))}
+              onChange={(e) => setFormData((prev) => ({ ...prev, operatingHours: e.target.value }))}
               className="w-full px-4 py-3 rounded-lg border-2 border-gray-200 bg-gray-50 focus:outline-none focus:ring-2 focus:ring-[#00C6A7]"
               placeholder="e.g. 10:00 AM - 4:00 PM"
             />
@@ -269,7 +300,7 @@ export const EventForm: React.FC<EventFormProps> = ({
         </h3>
         <ImageUpload
           images={formData.images}
-          setImages={imgs => setFormData(prev => ({ ...prev, images: imgs }))}
+          onImagesChange={(imgs: ImageFile[]) => setFormData((prev) => ({ ...prev, images: imgs }))}
           maxImages={1}
         />
       </div>
@@ -281,18 +312,22 @@ export const EventForm: React.FC<EventFormProps> = ({
         </h3>
         <div className="space-y-6">
           <div>
-            <label className="block text-sm font-bold text-gray-700 mb-2">Registration Link (URL)</label>
+            <label className="block text-sm font-bold text-gray-700 mb-2">
+              Registration Link (URL)
+            </label>
             <input
               type="text"
               value={formData.registerUrl}
-              onChange={e => setFormData(prev => ({ ...prev, registerUrl: e.target.value }))}
-              onBlur={e => handleBlur('url', e.target.value)}
+              onChange={(e) => setFormData((prev) => ({ ...prev, registerUrl: e.target.value }))}
+              onBlur={(e) => handleBlur('url', e.target.value)}
               className={`w-full px-4 py-3 rounded-lg border-2 bg-gray-50 focus:outline-none focus:ring-2 focus:ring-[#00C6A7] transition-all ${
                 fieldErrors.url ? 'border-red-500' : 'border-gray-200'
               }`}
               placeholder="https://..."
             />
-            {fieldErrors.url && <p className="mt-1 text-xs text-red-500 font-medium">{fieldErrors.url}</p>}
+            {fieldErrors.url && (
+              <p className="mt-1 text-xs text-red-500 font-medium">{fieldErrors.url}</p>
+            )}
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
@@ -301,7 +336,12 @@ export const EventForm: React.FC<EventFormProps> = ({
               <input
                 type="text"
                 value={formData.contactInfo.name}
-                onChange={e => setFormData(prev => ({ ...prev, contactInfo: { ...prev.contactInfo, name: e.target.value } }))}
+                onChange={(e) =>
+                  setFormData((prev) => ({
+                    ...prev,
+                    contactInfo: { ...prev.contactInfo, name: e.target.value },
+                  }))
+                }
                 className="w-full px-4 py-3 rounded-lg border-2 border-gray-200 bg-gray-50 focus:outline-none"
                 placeholder="Organizer name"
               />
@@ -311,28 +351,42 @@ export const EventForm: React.FC<EventFormProps> = ({
               <input
                 type="text"
                 value={formData.contactInfo.email}
-                onChange={e => setFormData(prev => ({ ...prev, contactInfo: { ...prev.contactInfo, email: e.target.value } }))}
-                onBlur={e => handleBlur('email', e.target.value)}
+                onChange={(e) =>
+                  setFormData((prev) => ({
+                    ...prev,
+                    contactInfo: { ...prev.contactInfo, email: e.target.value },
+                  }))
+                }
+                onBlur={(e) => handleBlur('email', e.target.value)}
                 className={`w-full px-4 py-3 rounded-lg border-2 bg-gray-50 focus:outline-none ${
                   fieldErrors.email ? 'border-red-500' : 'border-gray-200'
                 }`}
                 placeholder="email@example.com"
               />
-              {fieldErrors.email && <p className="mt-1 text-xs text-red-500 font-medium">{fieldErrors.email}</p>}
+              {fieldErrors.email && (
+                <p className="mt-1 text-xs text-red-500 font-medium">{fieldErrors.email}</p>
+              )}
             </div>
             <div>
               <label className="block text-sm font-bold text-gray-700 mb-2">Contact Phone</label>
               <input
                 type="text"
                 value={formData.contactInfo.phone}
-                onChange={e => setFormData(prev => ({ ...prev, contactInfo: { ...prev.contactInfo, phone: e.target.value } }))}
-                onBlur={e => handleBlur('phone', e.target.value)}
+                onChange={(e) =>
+                  setFormData((prev) => ({
+                    ...prev,
+                    contactInfo: { ...prev.contactInfo, phone: e.target.value },
+                  }))
+                }
+                onBlur={(e) => handleBlur('phone', e.target.value)}
                 className={`w-full px-4 py-3 rounded-lg border-2 bg-gray-50 focus:outline-none ${
                   fieldErrors.phone ? 'border-red-500' : 'border-gray-200'
                 }`}
                 placeholder="Phone number"
               />
-              {fieldErrors.phone && <p className="mt-1 text-xs text-red-500 font-medium">{fieldErrors.phone}</p>}
+              {fieldErrors.phone && (
+                <p className="mt-1 text-xs text-red-500 font-medium">{fieldErrors.phone}</p>
+              )}
             </div>
           </div>
         </div>

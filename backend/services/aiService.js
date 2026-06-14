@@ -3,7 +3,7 @@
 // or use an in-process approximate nearest neighbor index for small datasets.
 
 module.exports = {
-  async semanticSearch(query, options = {}) {
+  async semanticSearch(query, _options = {}) {
     // TODO: implement embeddings + vector search
     // - Generate embedding for `query` using OpenAI / Anthropic / local model
     // - Query vector DB for top-k matches

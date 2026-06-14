@@ -5,10 +5,12 @@ import { CAMPUS_LOCATIONS, UNIVERSITY_CENTER } from '../constants';
 export const useMap = () => {
   const [mapRef, setMapRef] = useState<google.maps.Map | null>(null);
   const [selectedLocation, setSelectedLocation] = useState<Location | null>(null);
-  const [infoWindowPosition, setInfoWindowPosition] = useState<google.maps.LatLng | null>(null);
+  const [infoWindowPosition, setInfoWindowPosition] = useState<{ lat: number; lng: number } | null>(
+    null
+  );
   const [userLocation, setUserLocation] = useState<{ lat: number; lng: number } | null>(null);
   const [animationNotice, setAnimationNotice] = useState<string | null>(null);
-  
+
   const [filters, setFilters] = useState<MapFilters>({
     search: '',
     category: 'All',
@@ -18,9 +20,10 @@ export const useMap = () => {
   const pendingLocationRef = useRef<Location | null>(null);
 
   const filteredLocations = useMemo(() => {
-    return CAMPUS_LOCATIONS.filter(loc => {
-      const matchesSearch = loc.name.toLowerCase().includes(filters.search.toLowerCase()) ||
-                          loc.description?.toLowerCase().includes(filters.search.toLowerCase());
+    return CAMPUS_LOCATIONS.filter((loc) => {
+      const matchesSearch =
+        loc.name.toLowerCase().includes(filters.search.toLowerCase()) ||
+        loc.description?.toLowerCase().includes(filters.search.toLowerCase());
       const matchesCategory = filters.category === 'All' || loc.category === filters.category;
       return matchesSearch && matchesCategory;
     });
@@ -28,53 +31,56 @@ export const useMap = () => {
 
   const handleMarkerClick = useCallback((location: Location) => {
     setSelectedLocation(location);
-    setInfoWindowPosition(new google.maps.LatLng(location.lat, location.lng));
+    setInfoWindowPosition({ lat: location.lat, lng: location.lng });
   }, []);
 
-  const navigateToLocation = useCallback((location: Location) => {
-    if (!mapRef) return;
-    
-    if (animationInProgress.current) {
-      pendingLocationRef.current = location;
-      setAnimationNotice('Finishing current zoom...');
-      return;
-    }
+  const navigateToLocation = useCallback(
+    (location: Location) => {
+      if (!mapRef) return;
 
-    animationInProgress.current = true;
-    setAnimationNotice(`Navigating to ${location.name}...`);
-
-    const currentZoom = mapRef.getZoom() || 15;
-    const targetZoom = 18;
-    const zoomSteps = 10;
-    const zoomInterval = 50;
-
-    let currentStep = 0;
-    const intervalId = setInterval(() => {
-      if (currentStep >= zoomSteps) {
-        clearInterval(intervalId);
-        setTimeout(() => {
-          handleMarkerClick(location);
-          mapRef.panTo({ lat: location.lat, lng: location.lng });
-          mapRef.setZoom(targetZoom);
-          animationInProgress.current = false;
-          setAnimationNotice(null);
-
-          if (pendingLocationRef.current && pendingLocationRef.current.id !== location.id) {
-            const next = pendingLocationRef.current;
-            pendingLocationRef.current = null;
-            navigateToLocation(next);
-          }
-        }, 100);
+      if (animationInProgress.current) {
+        pendingLocationRef.current = location;
+        setAnimationNotice('Finishing current zoom...');
         return;
       }
-      
-      const progress = currentStep / zoomSteps;
-      const newZoom = currentZoom + (targetZoom - currentZoom) * progress;
-      mapRef.setZoom(newZoom);
-      mapRef.panTo({ lat: location.lat, lng: location.lng });
-      currentStep++;
-    }, zoomInterval);
-  }, [mapRef, handleMarkerClick]);
+
+      animationInProgress.current = true;
+      setAnimationNotice(`Navigating to ${location.name}...`);
+
+      const currentZoom = mapRef.getZoom() || 15;
+      const targetZoom = 18;
+      const zoomSteps = 10;
+      const zoomInterval = 50;
+
+      let currentStep = 0;
+      const intervalId = setInterval(() => {
+        if (currentStep >= zoomSteps) {
+          clearInterval(intervalId);
+          setTimeout(() => {
+            handleMarkerClick(location);
+            mapRef.panTo({ lat: location.lat, lng: location.lng });
+            mapRef.setZoom(targetZoom);
+            animationInProgress.current = false;
+            setAnimationNotice(null);
+
+            if (pendingLocationRef.current && pendingLocationRef.current.id !== location.id) {
+              const next = pendingLocationRef.current;
+              pendingLocationRef.current = null;
+              navigateToLocation(next);
+            }
+          }, 100);
+          return;
+        }
+
+        const progress = currentStep / zoomSteps;
+        const newZoom = currentZoom + (targetZoom - currentZoom) * progress;
+        mapRef.setZoom(newZoom);
+        mapRef.panTo({ lat: location.lat, lng: location.lng });
+        currentStep++;
+      }, zoomInterval);
+    },
+    [mapRef, handleMarkerClick]
+  );
 
   const recenterToUser = useCallback(() => {
     if (navigator.geolocation) {

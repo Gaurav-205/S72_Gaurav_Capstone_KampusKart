@@ -26,7 +26,7 @@ const Landing: React.FC = () => {
   const [selectedFeature, setSelectedFeature] = useState<(typeof features)[number] | null>(null);
 
   return (
-    <div className="bg-white font-sans pt-[72px]">
+    <div className="bg-white dark:bg-gray-950 font-sans pt-[72px]">
 
       {/* Hero Section */}
         <div className="w-full py-16 sm:py-20 md:h-[calc(100vh-72px)] md:py-0 md:flex md:items-center">
@@ -35,16 +35,16 @@ const Landing: React.FC = () => {
 
         {/* Divider */}
         <div className="max-w-6xl mx-auto px-4 sm:px-6 md:px-8">
-          <div className="border-t-2 border-gray-200" />
+          <div className="border-t-2 border-gray-200 dark:border-gray-800" />
         </div>
 
         {/* Features Section */}
         <section className="max-w-6xl mx-auto px-4 sm:px-6 md:px-8 py-8 sm:py-10 md:py-12 lg:py-16">
           <div className="mb-6 sm:mb-8 md:mb-10 text-center md:text-left">
-            <span className="inline-flex items-center gap-2 mb-3 sm:mb-4 px-3 py-1.5 rounded-lg bg-gray-50 border-2 border-gray-200 text-xs font-semibold text-teal-700 uppercase tracking-widest">
+            <span className="inline-flex items-center gap-2 mb-3 sm:mb-4 px-3 py-1.5 rounded-lg bg-gray-50 border-2 border-gray-200 dark:border-gray-800 text-xs font-semibold text-teal-700 uppercase tracking-widest">
               Everything you need
             </span>
-            <h2 className="text-xl sm:text-2xl md:text-3xl lg:text-4xl font-extrabold text-black mb-2 sm:mb-3" style={{ letterSpacing: '-0.01em' }}>
+            <h2 className="text-xl sm:text-2xl md:text-3xl lg:text-4xl font-extrabold text-black dark:text-white mb-2 sm:mb-3" style={{ letterSpacing: '-0.01em' }}>
               Features
             </h2>
             <p className="text-sm sm:text-base text-gray-500">All your campus tools in one place.</p>
@@ -56,13 +56,13 @@ const Landing: React.FC = () => {
                 type="button"
                 key={feature.name}
                 aria-label={`Learn more about ${feature.name}`}
-                className="bg-white rounded-lg border-2 border-gray-200 p-4 sm:p-5 md:p-6 flex flex-col items-start transition-all duration-200 hover:border-gray-300 hover:shadow-md focus:outline-none focus:ring-2 focus:ring-[#00C6A7] focus:ring-offset-2 group min-h-touch"
+                className="bg-white dark:bg-gray-900 rounded-lg border-2 border-gray-200 dark:border-gray-800 p-4 sm:p-5 md:p-6 flex flex-col items-start transition-all duration-200 hover:border-gray-300 hover:shadow-md focus:outline-none focus:ring-2 focus:ring-[#00C6A7] focus:ring-offset-2 group min-h-touch"
                 onClick={() => setSelectedFeature(feature)}
               >
                 <div className={`mb-3 md:mb-4 w-10 h-10 sm:w-11 sm:h-11 md:w-12 md:h-12 flex items-center justify-center rounded-lg text-white ${feature.iconBg} transition-transform duration-200 group-hover:scale-110`}>
                   {feature.icon}
                 </div>
-                <h3 className="text-sm sm:text-base font-extrabold text-black mb-1 group-hover:text-[#00C6A7] transition-colors duration-200">
+                <h3 className="text-sm sm:text-base font-extrabold text-black dark:text-white mb-1 group-hover:text-[#00C6A7] transition-colors duration-200">
                   {feature.name}
                 </h3>
                 <p className="text-xs sm:text-sm text-gray-500 leading-relaxed">{feature.description}</p>
@@ -86,7 +86,7 @@ const Landing: React.FC = () => {
                 </Link>
                 <Link
                   to="/signup"
-                  className="inline-flex items-center justify-center min-h-[44px] px-4 rounded-lg font-semibold text-[#005F52] bg-white border-2 border-[#00C6A7] hover:bg-[#F3FFFC] transition-colors duration-200"
+                  className="inline-flex items-center justify-center min-h-[44px] px-4 rounded-lg font-semibold text-[#005F52] bg-white dark:bg-gray-900 border-2 border-[#00C6A7] hover:bg-[#F3FFFC] transition-colors duration-200"
                 >
                   Create account
                 </Link>
@@ -97,16 +97,16 @@ const Landing: React.FC = () => {
 
         {/* Divider */}
         <div className="max-w-6xl mx-auto px-4 sm:px-6 md:px-8">
-          <div className="border-t-2 border-gray-200" />
+          <div className="border-t-2 border-gray-200 dark:border-gray-800" />
         </div>
 
         {/* How it works */}
         <section className="max-w-6xl mx-auto px-4 sm:px-6 md:px-8 py-8 sm:py-10 md:py-12 lg:py-16">
           <div className="mb-6 sm:mb-8 md:mb-10 text-center md:text-left">
-            <span className="inline-flex items-center gap-2 mb-3 sm:mb-4 px-3 py-1.5 rounded-lg bg-gray-50 border-2 border-gray-200 text-xs font-semibold text-teal-700 uppercase tracking-widest">
+            <span className="inline-flex items-center gap-2 mb-3 sm:mb-4 px-3 py-1.5 rounded-lg bg-gray-50 border-2 border-gray-200 dark:border-gray-800 text-xs font-semibold text-teal-700 uppercase tracking-widest">
               Simple by design
             </span>
-            <h2 className="text-xl sm:text-2xl md:text-3xl lg:text-4xl font-extrabold text-black mb-2 sm:mb-3" style={{ letterSpacing: '-0.01em' }}>
+            <h2 className="text-xl sm:text-2xl md:text-3xl lg:text-4xl font-extrabold text-black dark:text-white mb-2 sm:mb-3" style={{ letterSpacing: '-0.01em' }}>
               Here's how it works
             </h2>
             <p className="text-sm sm:text-base text-gray-500">More living, less searching.</p>
@@ -116,12 +116,12 @@ const Landing: React.FC = () => {
             {steps.map((step, idx) => (
               <div 
                 key={idx} 
-                className="p-4 sm:p-5 md:p-6 bg-white border-2 border-gray-200 rounded-lg hover:shadow-md hover:border-gray-300 transition-all duration-200 group"
+                className="p-4 sm:p-5 md:p-6 bg-white dark:bg-gray-900 border-2 border-gray-200 dark:border-gray-800 rounded-lg hover:shadow-md hover:border-gray-300 transition-all duration-200 group"
               >
                 <div className={`mb-3 md:mb-4 w-10 h-10 sm:w-11 sm:h-11 md:w-12 md:h-12 flex items-center justify-center rounded-lg font-extrabold text-lg sm:text-xl text-white ${step.iconBg}`}>
                   {step.number}
                 </div>
-                <h3 className="text-sm sm:text-base font-extrabold text-black mb-1 sm:mb-2">{step.title}</h3>
+                <h3 className="text-sm sm:text-base font-extrabold text-black dark:text-white mb-1 sm:mb-2">{step.title}</h3>
                 <p className="text-xs sm:text-sm text-gray-500 leading-relaxed">{step.desc}</p>
               </div>
             ))}

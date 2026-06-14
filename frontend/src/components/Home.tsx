@@ -25,18 +25,18 @@ const Home = () => {
   };
 
   return (
-    <div className="bg-white font-sans pt-[72px]">
+    <div className="bg-white dark:bg-gray-950 font-sans pt-[72px]">
 
       {/* Hero with Map */}
       <div className="w-full py-16 sm:py-20 md:h-[calc(100vh-72px)] md:py-0 md:flex md:items-center">
         <section className="w-full px-4 sm:px-6 md:px-8 grid grid-cols-1 md:grid-cols-2 items-center gap-6 sm:gap-8 md:gap-10 lg:gap-12 max-w-6xl mx-auto">
           {/* Left: text */}
           <div className="text-center md:text-left space-y-3 sm:space-y-4 md:space-y-5">
-            <span className="inline-flex items-center gap-2 px-3 py-1.5 rounded-lg bg-gray-50 border-2 border-gray-200 text-xs font-semibold text-teal-700 uppercase tracking-widest">
+            <span className="inline-flex items-center gap-2 px-3 py-1.5 rounded-lg bg-gray-50 dark:bg-gray-900 border-2 border-gray-200 dark:border-gray-800 text-xs font-semibold text-teal-700 uppercase tracking-widest">
               Your campus, simplified
             </span>
             <h1
-              className="text-2xl xs:text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-extrabold text-black leading-tight"
+              className="text-2xl xs:text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-extrabold text-black dark:text-white leading-tight"
               style={{ letterSpacing: "-0.02em" }}
             >
               Welcome to KampusKart
@@ -53,7 +53,7 @@ const Home = () => {
               </Link>
               <button
                 onClick={scrollToFeatures}
-                className="min-h-[48px] px-6 sm:px-8 py-3 rounded-lg font-bold text-gray-700 bg-white border-2 border-gray-200 hover:bg-gray-50 active:bg-gray-100 transition-colors duration-200 text-sm sm:text-base"
+                className="min-h-[48px] px-6 sm:px-8 py-3 rounded-lg font-bold text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-900 border-2 border-gray-200 dark:border-gray-800 hover:bg-gray-50 active:bg-gray-100 transition-colors duration-200 text-sm sm:text-base"
               >
                 View Features
               </button>
@@ -71,16 +71,16 @@ const Home = () => {
 
       {/* Divider */}
       <div className="max-w-6xl mx-auto px-4 sm:px-8">
-        <div className="border-t-2 border-gray-200" />
+        <div className="border-t-2 border-gray-200 dark:border-gray-800" />
       </div>
 
       {/* Features */}
       <section id="features-section" className="max-w-6xl mx-auto px-4 sm:px-6 md:px-8 py-12 md:py-16">
         <div className="mb-8 md:mb-10 text-center md:text-left">
-          <span className="inline-flex items-center gap-2 mb-4 px-3 py-1.5 rounded-lg bg-gray-50 border-2 border-gray-200 text-xs font-semibold text-teal-700 uppercase tracking-widest">
+          <span className="inline-flex items-center gap-2 mb-4 px-3 py-1.5 rounded-lg bg-gray-50 dark:bg-gray-900 border-2 border-gray-200 dark:border-gray-800 text-xs font-semibold text-teal-700 uppercase tracking-widest">
             Everything you need
           </span>
-          <h2 className="text-2xl sm:text-3xl md:text-4xl font-extrabold text-black mb-3" style={{ letterSpacing: '-0.01em' }}>
+          <h2 className="text-2xl sm:text-3xl md:text-4xl font-extrabold text-black dark:text-white mb-3" style={{ letterSpacing: '-0.01em' }}>
             Features
           </h2>
           <p className="text-sm sm:text-base text-gray-500">All your campus tools in one place.</p>
@@ -92,12 +92,12 @@ const Home = () => {
               to={feature.link}
               key={feature.name}
               aria-label={`Go to ${feature.name}`}
-              className="bg-white rounded-lg border-2 border-gray-200 p-4 sm:p-5 md:p-6 flex flex-col items-start transition-all duration-200 hover:border-gray-300 hover:shadow-md focus:outline-none focus:ring-2 focus:ring-[#00C6A7] focus:ring-offset-2 group min-h-touch"
+              className="bg-white dark:bg-gray-900 rounded-lg border-2 border-gray-200 dark:border-gray-800 p-4 sm:p-5 md:p-6 flex flex-col items-start transition-all duration-200 hover:border-gray-300 hover:shadow-md focus:outline-none focus:ring-2 focus:ring-[#00C6A7] focus:ring-offset-2 group min-h-touch"
             >
               <div className={`mb-3 md:mb-4 w-10 h-10 sm:w-11 sm:h-11 md:w-12 md:h-12 flex items-center justify-center rounded-lg text-white ${feature.iconBg} transition-transform duration-200 group-hover:scale-110`}>
                 {feature.icon}
               </div>
-              <h3 className="text-sm sm:text-base font-extrabold text-black mb-1 group-hover:text-[#00C6A7] transition-colors duration-200">
+              <h3 className="text-sm sm:text-base font-extrabold text-black dark:text-white mb-1 group-hover:text-[#00C6A7] transition-colors duration-200">
                 {feature.name}
               </h3>
               <p className="text-xs sm:text-sm text-gray-500 leading-relaxed">{feature.description}</p>

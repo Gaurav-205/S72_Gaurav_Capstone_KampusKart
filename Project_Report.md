@@ -85,6 +85,7 @@ The frontend is configured for Netlify, while the backend is configured for Rend
 
 ```text
 S72_Gaurav_Capstone_KampusKart/
+  netlify.toml
   docs/
     README.md
     architecture.md
@@ -126,7 +127,6 @@ S72_Gaurav_Capstone_KampusKart/
       config.ts
     package.json
     vite.config.ts
-    netlify.toml
 
   backend/
     config/
@@ -172,18 +172,18 @@ S72_Gaurav_Capstone_KampusKart/
 
 ## 6. Technology Stack
 
-| Layer | Technologies |
-| --- | --- |
-| Frontend | React 18, TypeScript, Vite, React Router, Tailwind CSS, Material UI, Framer Motion |
-| Backend | Node.js, Express 5, CommonJS, Mongoose, Socket.IO |
-| Database | MongoDB, MongoDB Atlas-ready configuration |
-| Authentication | JWT, bcryptjs, Passport.js, Google OAuth 2.0 |
-| Media Storage | Cloudinary, Multer, Streamifier |
-| Email | Nodemailer for OTP password reset |
-| Maps | Google Maps JavaScript API, React Google Maps libraries |
-| Testing | Vitest, React Testing Library, Jest, Supertest |
-| DevOps | GitHub Actions, Netlify, Render |
-| Security | Helmet, CORS whitelist, HPP protection, custom Mongo sanitization, rate limiting |
+| Layer          | Technologies                                                                       |
+| -------------- | ---------------------------------------------------------------------------------- |
+| Frontend       | React 18, TypeScript, Vite, React Router, Tailwind CSS, Material UI, Framer Motion |
+| Backend        | Node.js, Express 5, CommonJS, Mongoose, Socket.IO                                  |
+| Database       | MongoDB, MongoDB Atlas-ready configuration                                         |
+| Authentication | JWT, bcryptjs, Passport.js, Google OAuth 2.0                                       |
+| Media Storage  | Cloudinary, Multer, Streamifier                                                    |
+| Email          | Nodemailer for OTP password reset                                                  |
+| Maps           | Google Maps JavaScript API, React Google Maps libraries                            |
+| Testing        | Vitest, React Testing Library, Jest, Supertest                                     |
+| DevOps         | GitHub Actions, Netlify, Render                                                    |
+| Security       | Helmet, CORS whitelist, HPP protection, custom Mongo sanitization, rate limiting   |
 
 ## 7. Backend Implementation
 
@@ -360,19 +360,19 @@ Stores recruitment announcements:
 
 ## 9. API Modules
 
-| API Prefix | Responsibility |
-| --- | --- |
-| `/api/auth` | Signup, login, Google OAuth, forgot password, reset password, token refresh |
-| `/api/profile` | Full profile read/update with profile image upload |
-| `/api/user` | Basic profile read/update |
-| `/api/lostfound` | Lost/found CRUD, search, filters, resolve, admin restore/delete/cleanup |
-| `/api/complaints` | Complaint CRUD, filters, status history, admin restore/delete/cleanup |
-| `/api/news` | Public news listing, admin create/update/delete |
-| `/api/events` | Public event listing, admin create/update/delete |
-| `/api/facilities` | Public facility listing, admin create/update/delete |
-| `/api/clubs` | Public club recruitment listing, admin create/update/delete |
-| `/api/chat` | Chat message pagination, send, edit, delete, reactions, read receipts, search |
-| `/api/health` | Health check for monitoring and keep-alive |
+| API Prefix        | Responsibility                                                                |
+| ----------------- | ----------------------------------------------------------------------------- |
+| `/api/auth`       | Signup, login, Google OAuth, forgot password, reset password, token refresh   |
+| `/api/profile`    | Full profile read/update with profile image upload                            |
+| `/api/user`       | Basic profile read/update                                                     |
+| `/api/lostfound`  | Lost/found CRUD, search, filters, resolve, admin restore/delete/cleanup       |
+| `/api/complaints` | Complaint CRUD, filters, status history, admin restore/delete/cleanup         |
+| `/api/news`       | Public news listing, admin create/update/delete                               |
+| `/api/events`     | Public event listing, admin create/update/delete                              |
+| `/api/facilities` | Public facility listing, admin create/update/delete                           |
+| `/api/clubs`      | Public club recruitment listing, admin create/update/delete                   |
+| `/api/chat`       | Chat message pagination, send, edit, delete, reactions, read receipts, search |
+| `/api/health`     | Health check for monitoring and keep-alive                                    |
 
 ## 10. Frontend Implementation
 
@@ -620,6 +620,7 @@ To enable scalability and maintainability, the frontend has been refactored into
 - **index.ts** - Main export point for clean imports
 
 Directory structure:
+
 ```
 frontend/src/
   features/
@@ -636,6 +637,7 @@ frontend/src/
 ```
 
 Benefits:
+
 - **Modularity**: Each feature is self-contained and independent
 - **Testability**: API calls are centralized and easier to mock
 - **Type Safety**: Domain types are co-located with feature logic
@@ -802,12 +804,12 @@ Runs every 14 minutes and pings the backend health endpoint. This helps reduce R
 
 ### Netlify Configuration
 
-File: `frontend/netlify.toml`
+File: `netlify.toml`
 
 Defines:
 
 - Build command: `npm run build:verify`
-- Publish directory: `dist`
+- Publish directory: `dist` (base directory: `frontend`)
 - Production API and socket URLs
 - SPA fallback redirect to `index.html`
 - Cache headers for static assets
@@ -988,4 +990,3 @@ Future enhancements:
 KampusKart is a comprehensive full-stack campus portal that shows practical software engineering ability across frontend development, backend API design, database modeling, authentication, real-time systems, file uploads, security, deployment, and testing.
 
 For an interview, the best way to present the project is to lead with the problem, explain the architecture clearly, highlight the real-time chat and admin workflows, then discuss how security, uploads, deployment, and testing were handled. This positions the project not just as a collection of pages, but as a production-style application with thoughtful engineering decisions.
-

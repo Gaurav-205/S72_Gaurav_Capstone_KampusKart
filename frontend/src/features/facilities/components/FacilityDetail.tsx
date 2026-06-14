@@ -26,23 +26,25 @@ export const FacilityDetail: React.FC<FacilityDetailProps> = ({
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         {facility.images && facility.images.length > 0 ? (
           facility.images.map((img, idx) => (
-            <div 
-              key={idx} 
+            <div
+              key={idx}
               className={`relative overflow-hidden rounded-xl border-2 border-gray-100 cursor-zoom-in group ${
                 facility.images?.length === 1 ? 'md:col-span-2 aspect-video' : 'aspect-square'
               }`}
-              onClick={() => setZoomedImage(img.url)}
+              onClick={() => setZoomedImage(img.url ?? null)}
             >
-              <img 
-                src={img.url} 
-                alt={`${facility.name} - ${idx + 1}`} 
-                className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110" 
+              <img
+                src={img.url}
+                alt={`${facility.name} - ${idx + 1}`}
+                className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
               />
             </div>
           ))
         ) : (
           <div className="md:col-span-2 aspect-video bg-gray-50 rounded-xl flex flex-col items-center justify-center border-2 border-dashed border-gray-200">
-            <div className={`p-6 rounded-2xl bg-white shadow-sm mb-4 ${iconOption?.color || 'text-gray-400'}`}>
+            <div
+              className={`p-6 rounded-2xl bg-white shadow-sm mb-4 ${iconOption?.color || 'text-gray-400'}`}
+            >
               {iconOption?.icon || <MdSchool className="w-16 h-16" />}
             </div>
             <span className="text-gray-400 font-medium">No gallery images</span>
@@ -61,11 +63,16 @@ export const FacilityDetail: React.FC<FacilityDetailProps> = ({
               <FiMapPin /> {facility.location}
             </span>
           </div>
-          <h2 className="text-4xl font-extrabold text-gray-900 leading-tight mb-2">{facility.name}</h2>
+          <h2 className="text-4xl font-extrabold text-gray-900 leading-tight mb-2">
+            {facility.name}
+          </h2>
           {facility.createdAt && (
             <div className="flex items-center text-gray-400 text-sm font-medium">
               <FiCalendar className="mr-2" />
-              <span>Added on {new Date(facility.createdAt).toLocaleDateString('en-US', { dateStyle: 'long' })}</span>
+              <span>
+                Added on{' '}
+                {new Date(facility.createdAt).toLocaleDateString('en-US', { dateStyle: 'long' })}
+              </span>
             </div>
           )}
         </div>
@@ -85,8 +92,12 @@ export const FacilityDetail: React.FC<FacilityDetailProps> = ({
               <FiUser className="w-6 h-6" />
             </div>
             <div>
-              <p className="text-xs font-bold text-gray-400 uppercase tracking-widest">Contributed By</p>
-              <p className="text-gray-900 font-bold">{facility.createdBy.name || facility.createdBy.email}</p>
+              <p className="text-xs font-bold text-gray-400 uppercase tracking-widest">
+                Contributed By
+              </p>
+              <p className="text-gray-900 font-bold">
+                {facility.createdBy.name || facility.createdBy.email}
+              </p>
             </div>
           </div>
         )}
@@ -112,7 +123,7 @@ export const FacilityDetail: React.FC<FacilityDetailProps> = ({
 
       {/* Image Zoom Modal */}
       {zoomedImage && (
-        <div 
+        <div
           className="fixed inset-0 z-[100] flex items-center justify-center bg-black/90 p-4 cursor-zoom-out"
           onClick={() => setZoomedImage(null)}
         >

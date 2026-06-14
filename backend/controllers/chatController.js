@@ -35,9 +35,6 @@ const sendMessage = async (req, res) => {
 
     res.status(201).json(message);
   } catch (error) {
-    // Log error for debugging in tests
-    // eslint-disable-next-line no-console
-    console.error('chatController.sendMessage error:', error);
     handleServiceError(res, error, 'Error sending message');
   }
 };

@@ -1,3 +1,3 @@
-import CampusMap from '../components/CampusMap';
+import CampusMap from '../features/map';
 
 export default CampusMap;

@@ -99,7 +99,7 @@ const ForgotPassword = () => {
   };
 
   return (
-    <div className="min-h-screen flex flex-col bg-white font-sans">
+    <div className="min-h-screen flex flex-col bg-white dark:bg-gray-950 font-sans">
       <div className="flex-1 flex items-center justify-center px-4 sm:px-6 md:px-8 py-8 md:py-12">
         <div className="w-full max-w-md">
         
@@ -107,11 +107,11 @@ const ForgotPassword = () => {
         <div className="flex items-center justify-center gap-2 sm:gap-3 mb-6 sm:mb-8">
           <Link to="/" className="flex items-center gap-2 sm:gap-3">
               <img src="/Logo.webp" alt="KampusKart Logo" className="h-8 w-8 sm:h-10 sm:w-10 object-contain" />
-              <span className="text-lg sm:text-xl font-extrabold text-black tracking-tight">KampusKart</span>
+              <span className="text-lg sm:text-xl font-extrabold text-black dark:text-white tracking-tight">KampusKart</span>
             </Link>
         </div>
 
-        <h2 className="mb-1 text-xl sm:text-2xl font-extrabold text-black text-center">
+        <h2 className="mb-1 text-xl sm:text-2xl font-extrabold text-black dark:text-white text-center">
           {step === 'request_otp' ? 'Forgot Password' : 'Reset Password'}
         </h2>
         <p className="text-xs sm:text-sm text-gray-500 text-center mb-6 sm:mb-8">
@@ -142,7 +142,7 @@ const ForgotPassword = () => {
                 type="email"
                 autoComplete="email"
                 required
-                className="w-full px-3 py-3 sm:py-2.5 border-2 border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#00C6A7] focus:border-transparent bg-white text-gray-900 text-base placeholder:text-gray-400 transition-colors duration-200 min-h-touch"
+                className="w-full px-3 py-3 sm:py-2.5 border-2 border-gray-200 dark:border-gray-800 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#00C6A7] focus:border-transparent bg-white dark:bg-gray-950 text-gray-900 dark:text-gray-100 text-base placeholder:text-gray-400 transition-colors duration-200 min-h-touch"
                 placeholder="you@example.com"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
@@ -175,7 +175,7 @@ const ForgotPassword = () => {
               <input
                 type="text"
                 required
-                className="w-full px-3 py-3 sm:py-2.5 border-2 border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#00C6A7] focus:border-transparent bg-white text-gray-900 text-base placeholder:text-gray-400 transition-colors duration-200 min-h-touch"
+                className="w-full px-3 py-3 sm:py-2.5 border-2 border-gray-200 dark:border-gray-800 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#00C6A7] focus:border-transparent bg-white dark:bg-gray-950 text-gray-900 dark:text-gray-100 text-base placeholder:text-gray-400 transition-colors duration-200 min-h-touch"
                 placeholder="Enter 6-digit code"
                 value={otp}
                 onChange={(e) => setOtp(e.target.value)}
@@ -190,7 +190,7 @@ const ForgotPassword = () => {
                   type={showNewPassword ? 'text' : 'password'}
                   autoComplete="new-password"
                   required
-                  className="w-full px-3 py-3 sm:py-2.5 pr-12 border-2 border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#00C6A7] focus:border-transparent bg-white text-gray-900 text-base placeholder:text-gray-400 transition-colors duration-200 min-h-touch"
+                  className="w-full px-3 py-3 sm:py-2.5 pr-12 border-2 border-gray-200 dark:border-gray-800 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#00C6A7] focus:border-transparent bg-white dark:bg-gray-950 text-gray-900 dark:text-gray-100 text-base placeholder:text-gray-400 transition-colors duration-200 min-h-touch"
                   placeholder="••••••••"
                   value={newPassword}
                   onChange={(e) => setNewPassword(e.target.value)}
@@ -202,7 +202,7 @@ const ForgotPassword = () => {
                   onClick={() => setShowNewPassword(v => !v)}
                   aria-label={showNewPassword ? 'Hide password' : 'Show password'}
                 >
-                  {showNewPassword ? <EyeSlashIcon className="h-5 w-5" /> : <EyeIcon className="h-5 w-5" />}
+                  {showNewPassword ? <EyeIcon className="h-5 w-5" /> : <EyeSlashIcon className="h-5 w-5" />}
                 </button>
               </div>
             </div>
@@ -214,7 +214,7 @@ const ForgotPassword = () => {
                   type={showConfirmPassword ? 'text' : 'password'}
                   autoComplete="new-password"
                   required
-                  className="w-full px-3 py-3 sm:py-2.5 pr-12 border-2 border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#00C6A7] focus:border-transparent bg-white text-gray-900 text-base placeholder:text-gray-400 transition-colors duration-200 min-h-touch"
+                  className="w-full px-3 py-3 sm:py-2.5 pr-12 border-2 border-gray-200 dark:border-gray-800 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#00C6A7] focus:border-transparent bg-white dark:bg-gray-950 text-gray-900 dark:text-gray-100 text-base placeholder:text-gray-400 transition-colors duration-200 min-h-touch"
                   placeholder="••••••••"
                   value={confirmPassword}
                   onChange={(e) => setConfirmPassword(e.target.value)}
@@ -226,7 +226,7 @@ const ForgotPassword = () => {
                   onClick={() => setShowConfirmPassword(v => !v)}
                   aria-label={showConfirmPassword ? 'Hide password' : 'Show password'}
                 >
-                  {showConfirmPassword ? <EyeSlashIcon className="h-5 w-5" /> : <EyeIcon className="h-5 w-5" />}
+                  {showConfirmPassword ? <EyeIcon className="h-5 w-5" /> : <EyeSlashIcon className="h-5 w-5" />}
                 </button>
               </div>
             </div>

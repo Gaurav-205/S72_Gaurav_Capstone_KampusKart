@@ -66,7 +66,7 @@ VITE_SOCKET_URL=http://localhost:5000
 ```
 
 ## Netlify build environment
-Netlify sets build env vars in frontend/netlify.toml:
+Netlify sets build env vars in netlify.toml:
 - VITE_API_URL
 - VITE_SOCKET_URL
 - NODE_VERSION

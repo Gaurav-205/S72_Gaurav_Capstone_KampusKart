@@ -1,4 +1,4 @@
-export { default } from '../../components/CampusMap';
+export { default } from './components/CampusMap';
 export * from './types';
 export * from './constants';
 export * from './hooks/useMap';

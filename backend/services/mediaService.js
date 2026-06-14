@@ -104,11 +104,7 @@ const uploadAttachments = async (files, { folder, allowedMimeTypes, maxSizeBytes
 
 const deleteByPublicId = async (publicId) => {
   if (!publicId) return;
-  try {
-    await cloudinary.uploader.destroy(publicId);
-  } catch (error) {
-    throw error;
-  }
+  await cloudinary.uploader.destroy(publicId);
 };
 
 const deleteImages = async (images) => {

@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { FiInfo, FiMapPin, FiTag } from 'react-icons/fi';
+import { FiInfo } from 'react-icons/fi';
 import { ImageUpload, ImageFile } from '../../../components/common/ImageUpload';
 import { Facility } from '../types';
 import { ICON_OPTIONS } from '../constants';
@@ -21,12 +21,12 @@ export const FacilityForm: React.FC<FacilityFormProps> = ({
     name: facility?.name || '',
     description: facility?.description || '',
     location: facility?.location || '',
-    type: facility?.type || 'Academic' as Facility['type'],
+    type: facility?.type || ('Academic' as Facility['type']),
     icon: facility?.icon || 'MdSchool',
   });
 
   const [images, setImages] = useState<ImageFile[]>(
-    (facility?.images || []).map(img => ({
+    (facility?.images || []).map((img) => ({
       previewUrl: img.url,
       public_id: img.public_id,
       url: img.url,
@@ -47,15 +47,16 @@ export const FacilityForm: React.FC<FacilityFormProps> = ({
 
   const handleBlur = (name: string, value: string) => {
     const error = validateField(name, value);
-    setFieldErrors(prev => ({ ...prev, [name]: error || '' }));
+    setFieldErrors((prev) => ({ ...prev, [name]: error || '' }));
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     const errors: Record<string, string> = {};
-    
-    ['name', 'description', 'location'].forEach(field => {
-      const err = validateField(field, (formData as any)[field]);
+
+    const requiredFields = ['name', 'description', 'location'] as const;
+    requiredFields.forEach((field) => {
+      const err = validateField(field, formData[field]);
       if (err) errors[field] = err;
     });
 
@@ -72,12 +73,12 @@ export const FacilityForm: React.FC<FacilityFormProps> = ({
     submitData.append('type', formData.type);
     submitData.append('icon', formData.icon);
 
-    images.forEach(img => {
+    images.forEach((img) => {
       if (img.file) submitData.append('images', img.file);
     });
 
     if (facility) {
-      const keepPublicIds = images.filter(img => img.public_id).map(img => img.public_id);
+      const keepPublicIds = images.filter((img) => img.public_id).map((img) => img.public_id);
       submitData.append('keepImages', JSON.stringify(keepPublicIds));
     }
 
@@ -97,28 +98,32 @@ export const FacilityForm: React.FC<FacilityFormProps> = ({
               <input
                 type="text"
                 value={formData.name}
-                onChange={e => setFormData(prev => ({ ...prev, name: e.target.value }))}
-                onBlur={e => handleBlur('name', e.target.value)}
+                onChange={(e) => setFormData((prev) => ({ ...prev, name: e.target.value }))}
+                onBlur={(e) => handleBlur('name', e.target.value)}
                 className={`w-full px-4 py-3 rounded-lg border-2 bg-gray-50 focus:outline-none focus:ring-2 focus:ring-[#00C6A7] transition-all ${
                   fieldErrors.name ? 'border-red-500' : 'border-gray-200'
                 }`}
                 placeholder="e.g. Main Library"
               />
-              {fieldErrors.name && <p className="mt-1 text-xs text-red-500 font-medium">{fieldErrors.name}</p>}
+              {fieldErrors.name && (
+                <p className="mt-1 text-xs text-red-500 font-medium">{fieldErrors.name}</p>
+              )}
             </div>
             <div>
               <label className="block text-sm font-bold text-gray-700 mb-2">Location *</label>
               <input
                 type="text"
                 value={formData.location}
-                onChange={e => setFormData(prev => ({ ...prev, location: e.target.value }))}
-                onBlur={e => handleBlur('location', e.target.value)}
+                onChange={(e) => setFormData((prev) => ({ ...prev, location: e.target.value }))}
+                onBlur={(e) => handleBlur('location', e.target.value)}
                 className={`w-full px-4 py-3 rounded-lg border-2 bg-gray-50 focus:outline-none focus:ring-2 focus:ring-[#00C6A7] transition-all ${
                   fieldErrors.location ? 'border-red-500' : 'border-gray-200'
                 }`}
                 placeholder="e.g. Block A, 1st Floor"
               />
-              {fieldErrors.location && <p className="mt-1 text-xs text-red-500 font-medium">{fieldErrors.location}</p>}
+              {fieldErrors.location && (
+                <p className="mt-1 text-xs text-red-500 font-medium">{fieldErrors.location}</p>
+              )}
             </div>
           </div>
 
@@ -126,15 +131,17 @@ export const FacilityForm: React.FC<FacilityFormProps> = ({
             <label className="block text-sm font-bold text-gray-700 mb-2">Description *</label>
             <textarea
               value={formData.description}
-              onChange={e => setFormData(prev => ({ ...prev, description: e.target.value }))}
-              onBlur={e => handleBlur('description', e.target.value)}
+              onChange={(e) => setFormData((prev) => ({ ...prev, description: e.target.value }))}
+              onBlur={(e) => handleBlur('description', e.target.value)}
               rows={3}
               className={`w-full px-4 py-3 rounded-lg border-2 bg-gray-50 focus:outline-none focus:ring-2 focus:ring-[#00C6A7] transition-all ${
                 fieldErrors.description ? 'border-red-500' : 'border-gray-200'
               }`}
               placeholder="Tell us more about this facility..."
             />
-            {fieldErrors.description && <p className="mt-1 text-xs text-red-500 font-medium">{fieldErrors.description}</p>}
+            {fieldErrors.description && (
+              <p className="mt-1 text-xs text-red-500 font-medium">{fieldErrors.description}</p>
+            )}
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -142,7 +149,9 @@ export const FacilityForm: React.FC<FacilityFormProps> = ({
               <label className="block text-sm font-bold text-gray-700 mb-2">Type</label>
               <select
                 value={formData.type}
-                onChange={e => setFormData(prev => ({ ...prev, type: e.target.value as any }))}
+                onChange={(e) =>
+                  setFormData((prev) => ({ ...prev, type: e.target.value as Facility['type'] }))
+                }
                 className="w-full px-4 py-3 rounded-lg border-2 border-gray-200 bg-gray-50 focus:outline-none focus:ring-2 focus:ring-[#00C6A7]"
               >
                 <option value="Academic">Academic</option>
@@ -155,27 +164,31 @@ export const FacilityForm: React.FC<FacilityFormProps> = ({
               <label className="block text-sm font-bold text-gray-700 mb-2">Primary Icon</label>
               <select
                 value={formData.icon}
-                onChange={e => setFormData(prev => ({ ...prev, icon: e.target.value }))}
+                onChange={(e) => setFormData((prev) => ({ ...prev, icon: e.target.value }))}
                 className="w-full px-4 py-3 rounded-lg border-2 border-gray-200 bg-gray-50 focus:outline-none focus:ring-2 focus:ring-[#00C6A7]"
               >
-                {ICON_OPTIONS.map(opt => (
-                  <option key={opt.value} value={opt.value}>{opt.label}</option>
+                {ICON_OPTIONS.map((opt) => (
+                  <option key={opt.value} value={opt.value}>
+                    {opt.label}
+                  </option>
                 ))}
               </select>
             </div>
           </div>
 
           <div>
-            <label className="block text-sm font-bold text-gray-700 mb-3">Choose Icon Representation</label>
+            <label className="block text-sm font-bold text-gray-700 mb-3">
+              Choose Icon Representation
+            </label>
             <div className="grid grid-cols-5 sm:grid-cols-10 gap-3">
-              {ICON_OPTIONS.map(opt => (
+              {ICON_OPTIONS.map((opt) => (
                 <button
                   key={opt.value}
                   type="button"
-                  onClick={() => setFormData(prev => ({ ...prev, icon: opt.value }))}
+                  onClick={() => setFormData((prev) => ({ ...prev, icon: opt.value }))}
                   className={`p-3 rounded-xl border-2 transition-all duration-200 flex items-center justify-center ${
-                    formData.icon === opt.value 
-                      ? 'border-[#00C6A7] bg-[#00C6A7] text-white shadow-lg shadow-teal-100 scale-110' 
+                    formData.icon === opt.value
+                      ? 'border-[#00C6A7] bg-[#00C6A7] text-white shadow-lg shadow-teal-100 scale-110'
                       : 'border-gray-100 bg-white text-gray-400 hover:border-gray-200 hover:text-gray-600'
                   }`}
                   title={opt.label}
@@ -189,14 +202,8 @@ export const FacilityForm: React.FC<FacilityFormProps> = ({
       </div>
 
       <div className="border-2 border-gray-200 rounded-lg p-6">
-        <h3 className="text-lg font-bold mb-4 text-gray-900 flex items-center gap-2">
-          Gallery
-        </h3>
-        <ImageUpload
-          images={images}
-          setImages={setImages}
-          maxImages={5}
-        />
+        <h3 className="text-lg font-bold mb-4 text-gray-900 flex items-center gap-2">Gallery</h3>
+        <ImageUpload images={images} onImagesChange={setImages} maxImages={6} />
       </div>
 
       {formError && (

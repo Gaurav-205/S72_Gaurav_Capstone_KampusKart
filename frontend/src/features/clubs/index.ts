@@ -1,5 +1,5 @@
-export { default } from '../../components/ClubsRecruitment';
-export * from './types';
+export { default } from './components/ClubsRecruitment';
+// Intentionally not re-exporting './types' here to avoid name collisions
 export * from './api';
 export * from './hooks/useClubs';
 export * from './components/ClubCard';
